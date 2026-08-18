@@ -352,14 +352,14 @@ export default function App() {
               )}
 
               {/* 18 Individual Madrasah Views */}
-              {activeTab === '1_daftar_hadir' && <DaftarHadirView />}
-              {activeTab === '2_biodata' && <BiodataView />}
+              {activeTab === '1_daftar_hadir' && <DaftarHadirView activeRole={activeRole} />}
+              {activeTab === '2_biodata' && <BiodataView activeRole={activeRole} />}
               {activeTab === '3_kopas' && <KopasView />}
               {activeTab === '4_dokumentasi' && <DokumentasiView />}
               {activeTab === '5_raport' && <RaportView />}
               {activeTab === '6_jadwal_seragam_mapel' && <JadwalSeragamMapelView />}
               {activeTab === '7_profile_madrasah' && (
-                <ProfileMadrasahView onOpenBrandingSettings={() => setIsBrandingModalOpen(true)} />
+                <ProfileMadrasahView activeRole={activeRole} onOpenBrandingSettings={() => setIsBrandingModalOpen(true)} />
               )}
               {activeTab === '8_catatan_kegiatan' && <CatatanKegiatanView />}
               {activeTab === '9_visi_misi' && <VisiMisiView />}

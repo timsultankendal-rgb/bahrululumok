@@ -35,6 +35,7 @@ import {
 import { playTapSound, playAdzanChime, playSuccessSound } from '../../utils/audio';
 import { BerandaConfig, DEFAULT_BERANDA_CONFIG } from '../modals/EditBerandaModal';
 import { AppBrandingConfig, DEFAULT_BRANDING } from '../modals/AppBrandingModal';
+import { useAccessPermission } from '../../hooks/useAccessPermission';
 
 interface HomeTabProps {
   student: StudentProfile;
@@ -91,6 +92,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
   branding = DEFAULT_BRANDING,
   onOpenBrandingSettings,
 }) => {
+  const { canManage } = useAccessPermission('home', activeRole);
   const [adzanSoundEnabled, setAdzanSoundEnabled] = useState<boolean>(true);
   const [nextPrayerCountdown, setNextPrayerCountdown] = useState<string>('01:24:10');
 
@@ -208,7 +210,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
           </div>
 
           <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
-            {onOpenEditBeranda && (
+            {canManage && onOpenEditBeranda && (
               <button
                 id="btn-edit-beranda"
                 onClick={() => {
@@ -239,13 +241,13 @@ export const HomeTab: React.FC<HomeTabProps> = ({
         <div className="flex items-center gap-2.5 sm:gap-3 relative z-10 mb-3">
           <div 
             onClick={() => {
-              if (onOpenBrandingSettings) {
+              if (canManage && onOpenBrandingSettings) {
                 playTapSound();
                 onOpenBrandingSettings();
               }
             }}
-            className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-white/20 border border-white/30 overflow-hidden shrink-0 flex items-center justify-center p-0.5 shadow-sm cursor-pointer hover:scale-105 transition-transform"
-            title="Klik untuk Mengganti Logo & Identitas Madrasah"
+            className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-white/20 border border-white/30 overflow-hidden shrink-0 flex items-center justify-center p-0.5 shadow-sm transition-transform ${canManage ? 'cursor-pointer hover:scale-105' : ''}`}
+            title={canManage ? 'Klik untuk Mengganti Logo & Identitas Madrasah' : branding.institutionName}
           >
             {branding.logoUrl ? (
               <img

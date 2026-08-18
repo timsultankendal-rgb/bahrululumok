@@ -28,8 +28,9 @@ import {
   UserCheck
 } from 'lucide-react';
 import { BIODATA_ASATIDZ_LIST, BIODATA_MURID_LIST } from '../../data/madrasahCompleteData';
-import { BiodataAsatidz, BiodataMurid } from '../../types';
+import { BiodataAsatidz, BiodataMurid, UserRole } from '../../types';
 import { playTapSound } from '../../utils/audio';
+import { useAccessPermission } from '../../hooks/useAccessPermission';
 import {
   saveAsatidzToFirestore,
   deleteAsatidzFromFirestore,
@@ -58,7 +59,16 @@ const AVATAR_PRESETS_MURID = [
   'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&auto=format&fit=crop&q=80'
 ];
 
-export const BiodataView: React.FC = () => {
+interface BiodataViewProps {
+  activeRole?: UserRole;
+  canEdit?: boolean;
+}
+
+export const BiodataView: React.FC<BiodataViewProps> = ({
+  activeRole,
+  canEdit: explicitCanEdit,
+}) => {
+  const { canEdit } = useAccessPermission('2_biodata', activeRole, explicitCanEdit);
   const [activeTab, setActiveTab] = useState<'asatidz' | 'murid'>('asatidz');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedKelas, setSelectedKelas] = useState<string>('Semua');
@@ -545,13 +555,15 @@ export const BiodataView: React.FC = () => {
             <span className="hidden sm:inline">Cetak</span>
           </button>
 
-          <button
-            onClick={handleResetDefaultData}
-            title="Reset Data Bawaan"
-            className="flex items-center gap-1 bg-white/20 hover:bg-white/30 text-white px-2.5 py-1.5 rounded-2xl text-xs font-bold transition-all cursor-pointer"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
-          </button>
+          {canEdit && (
+            <button
+              onClick={handleResetDefaultData}
+              title="Reset Data Bawaan"
+              className="flex items-center gap-1 bg-white/20 hover:bg-white/30 text-white px-2.5 py-1.5 rounded-2xl text-xs font-bold transition-all cursor-pointer"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
       </div>
 
@@ -616,22 +628,26 @@ export const BiodataView: React.FC = () => {
           </div>
 
           {/* Add Data Button */}
-          {activeTab === 'asatidz' ? (
-            <button
-              onClick={handleOpenAddAsatidz}
-              className="flex items-center justify-center gap-1.5 bg-teal-700 hover:bg-teal-800 text-white px-4 py-2 rounded-xl text-xs font-extrabold shadow-xs transition-all cursor-pointer shrink-0"
-            >
-              <Plus className="w-4 h-4" />
-              <span>+ Tambah Asatidz Baru</span>
-            </button>
-          ) : (
-            <button
-              onClick={handleOpenAddMurid}
-              className="flex items-center justify-center gap-1.5 bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2 rounded-xl text-xs font-extrabold shadow-xs transition-all cursor-pointer shrink-0"
-            >
-              <Plus className="w-4 h-4" />
-              <span>+ Tambah Santri Baru</span>
-            </button>
+          {canEdit && (
+            <>
+              {activeTab === 'asatidz' ? (
+                <button
+                  onClick={handleOpenAddAsatidz}
+                  className="flex items-center justify-center gap-1.5 bg-teal-700 hover:bg-teal-800 text-white px-4 py-2 rounded-xl text-xs font-extrabold shadow-xs transition-all cursor-pointer shrink-0"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>+ Tambah Asatidz Baru</span>
+                </button>
+              ) : (
+                <button
+                  onClick={handleOpenAddMurid}
+                  className="flex items-center justify-center gap-1.5 bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2 rounded-xl text-xs font-extrabold shadow-xs transition-all cursor-pointer shrink-0"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>+ Tambah Santri Baru</span>
+                </button>
+              )}
+            </>
           )}
         </div>
 
@@ -740,23 +756,27 @@ export const BiodataView: React.FC = () => {
                         >
                           <Eye className="w-3.5 h-3.5" />
                         </button>
-                        <button
-                          onClick={() => handleOpenEditAsatidz(ast)}
-                          title="Edit Biodata"
-                          className="p-1.5 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-800 transition-colors cursor-pointer"
-                        >
-                          <Edit2 className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={() => {
-                            playTapSound();
-                            setDeletingAsatidz(ast);
-                          }}
-                          title="Hapus Asatidz"
-                          className="p-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 transition-colors cursor-pointer"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
+                        {canEdit && (
+                          <>
+                            <button
+                              onClick={() => handleOpenEditAsatidz(ast)}
+                              title="Edit Biodata"
+                              className="p-1.5 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-800 transition-colors cursor-pointer"
+                            >
+                              <Edit2 className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => {
+                                playTapSound();
+                                setDeletingAsatidz(ast);
+                              }}
+                              title="Hapus Asatidz"
+                              className="p-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 transition-colors cursor-pointer"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </>
+                        )}
                       </div>
                     </div>
 
@@ -898,23 +918,27 @@ export const BiodataView: React.FC = () => {
                         >
                           <Eye className="w-3.5 h-3.5" />
                         </button>
-                        <button
-                          onClick={() => handleOpenEditMurid(mrd)}
-                          title="Edit Santri"
-                          className="p-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 transition-colors cursor-pointer"
-                        >
-                          <Edit2 className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={() => {
-                            playTapSound();
-                            setDeletingMurid(mrd);
-                          }}
-                          title="Hapus Santri"
-                          className="p-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 transition-colors cursor-pointer"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
+                        {canEdit && (
+                          <>
+                            <button
+                              onClick={() => handleOpenEditMurid(mrd)}
+                              title="Edit Santri"
+                              className="p-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 transition-colors cursor-pointer"
+                            >
+                              <Edit2 className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => {
+                                playTapSound();
+                                setDeletingMurid(mrd);
+                              }}
+                              title="Hapus Santri"
+                              className="p-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 transition-colors cursor-pointer"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </>
+                        )}
                       </div>
                     </div>
 

@@ -27,15 +27,23 @@ import {
   subscribeMenuRecords 
 } from '../../services/firestoreService';
 
+import { UserRole } from '../../types';
+import { useAccessPermission } from '../../hooks/useAccessPermission';
+
 const STORAGE_KEY_PROFILE = 'madrasah_profile_data_v2';
 
 interface ProfileMadrasahViewProps {
   onOpenBrandingSettings?: () => void;
+  activeRole?: UserRole;
+  canEdit?: boolean;
 }
 
 export const ProfileMadrasahView: React.FC<ProfileMadrasahViewProps> = ({
-  onOpenBrandingSettings
+  onOpenBrandingSettings,
+  activeRole,
+  canEdit: explicitCanEdit,
 }) => {
+  const { canEdit, canManage } = useAccessPermission('7_profile_madrasah', activeRole, explicitCanEdit);
   const [profileData, setProfileData] = useState(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY_PROFILE);
@@ -149,15 +157,17 @@ export const ProfileMadrasahView: React.FC<ProfileMadrasahViewProps> = ({
               <span>{cloudStatus === 'synced' ? 'Cloud Terhubung' : 'Offline'}</span>
             </div>
 
-            <button
-              onClick={handleOpenEdit}
-              className="flex items-center gap-1.5 bg-amber-400 hover:bg-amber-300 text-emerald-950 px-3.5 py-1.5 rounded-2xl text-xs font-black shadow-xs transition-all cursor-pointer"
-            >
-              <Edit2 className="w-3.5 h-3.5" />
-              <span>Edit Profil</span>
-            </button>
+            {canEdit && (
+              <button
+                onClick={handleOpenEdit}
+                className="flex items-center gap-1.5 bg-amber-400 hover:bg-amber-300 text-emerald-950 px-3.5 py-1.5 rounded-2xl text-xs font-black shadow-xs transition-all cursor-pointer"
+              >
+                <Edit2 className="w-3.5 h-3.5" />
+                <span>Edit Profil</span>
+              </button>
+            )}
 
-            {onOpenBrandingSettings && (
+            {canManage && onOpenBrandingSettings && (
               <button
                 onClick={() => {
                   playTapSound();
@@ -179,13 +189,15 @@ export const ProfileMadrasahView: React.FC<ProfileMadrasahViewProps> = ({
               <Printer className="w-3.5 h-3.5" />
             </button>
 
-            <button
-              onClick={handleReset}
-              title="Reset Default"
-              className="p-2 bg-white/20 hover:bg-white/30 text-white rounded-2xl text-xs font-bold transition-all cursor-pointer"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-            </button>
+            {canEdit && (
+              <button
+                onClick={handleReset}
+                title="Reset Default"
+                className="p-2 bg-white/20 hover:bg-white/30 text-white rounded-2xl text-xs font-bold transition-all cursor-pointer"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
         </div>
 

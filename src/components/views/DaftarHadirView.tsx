@@ -29,8 +29,9 @@ import {
   Cloud
 } from 'lucide-react';
 import { DAFTAR_HADIR_MURID, DAFTAR_HADIR_ASATIDZ } from '../../data/madrasahCompleteData';
-import { PresensiMuridItem, PresensiAsatidzItem } from '../../types';
+import { PresensiMuridItem, PresensiAsatidzItem, UserRole } from '../../types';
 import { playTapSound } from '../../utils/audio';
+import { useAccessPermission } from '../../hooks/useAccessPermission';
 import { 
   saveDailyAttendanceToFirestore, 
   subscribeDailyAttendanceFromFirestore, 
@@ -67,7 +68,16 @@ const getTodayIso = () => {
   return `${year}-${month}-${day}`;
 };
 
-export const DaftarHadirView: React.FC = () => {
+interface DaftarHadirViewProps {
+  activeRole?: UserRole;
+  canEdit?: boolean;
+}
+
+export const DaftarHadirView: React.FC<DaftarHadirViewProps> = ({
+  activeRole,
+  canEdit: explicitCanEdit,
+}) => {
+  const { canEdit } = useAccessPermission('1_daftar_hadir', activeRole, explicitCanEdit);
   const [activeSubTab, setActiveSubTab] = useState<'murid' | 'asatidz'>('murid');
   const [selectedKelas, setSelectedKelas] = useState<string>('Semua');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -618,16 +628,18 @@ export const DaftarHadirView: React.FC = () => {
 
         <div className="flex flex-wrap items-center gap-2">
           {/* Tombol Simpan Absensi Hari Ini */}
-          <button
-            id="btn-simpan-absensi-header"
-            onClick={handleManualSave}
-            disabled={isManualSaving}
-            className="flex items-center gap-1.5 bg-amber-400 hover:bg-amber-300 text-emerald-950 px-3.5 py-2 rounded-2xl text-xs font-black transition-all cursor-pointer shadow-md hover:scale-[1.02] active:scale-[0.98]"
-            title="Klik untuk memastikan data absensi tersimpan"
-          >
-            <Save className="w-4 h-4 text-emerald-900" />
-            <span>{isManualSaving ? 'Menyimpan...' : '💾 SIMPAN ABSENSI'}</span>
-          </button>
+          {canEdit && (
+            <button
+              id="btn-simpan-absensi-header"
+              onClick={handleManualSave}
+              disabled={isManualSaving}
+              className="flex items-center gap-1.5 bg-amber-400 hover:bg-amber-300 text-emerald-950 px-3.5 py-2 rounded-2xl text-xs font-black transition-all cursor-pointer shadow-md hover:scale-[1.02] active:scale-[0.98]"
+              title="Klik untuk memastikan data absensi tersimpan"
+            >
+              <Save className="w-4 h-4 text-emerald-900" />
+              <span>{isManualSaving ? 'Menyimpan...' : '💾 SIMPAN ABSENSI'}</span>
+            </button>
+          )}
 
           <button
             onClick={handleCopyRekap}
@@ -638,13 +650,15 @@ export const DaftarHadirView: React.FC = () => {
             <span className="hidden sm:inline">Salin Rekap WA</span>
           </button>
 
-          <button
-            onClick={handleResetToDefault}
-            title="Reset ke data awal madrasah"
-            className="flex items-center gap-1 bg-white/15 hover:bg-rose-500/80 text-white p-2 rounded-2xl text-xs font-bold transition-all cursor-pointer border border-white/20"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
-          </button>
+          {canEdit && (
+            <button
+              onClick={handleResetToDefault}
+              title="Reset ke data awal madrasah"
+              className="flex items-center gap-1 bg-white/15 hover:bg-rose-500/80 text-white p-2 rounded-2xl text-xs font-bold transition-all cursor-pointer border border-white/20"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
       </div>
 
@@ -747,14 +761,16 @@ export const DaftarHadirView: React.FC = () => {
             </span>
           </div>
 
-          <button
-            onClick={handleManualSave}
-            disabled={isManualSaving}
-            className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-2xl text-xs font-extrabold transition-all cursor-pointer shadow-xs"
-          >
-            <Save className="w-4 h-4" />
-            <span>Simpan</span>
-          </button>
+          {canEdit && (
+            <button
+              onClick={handleManualSave}
+              disabled={isManualSaving}
+              className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-2xl text-xs font-extrabold transition-all cursor-pointer shadow-xs"
+            >
+              <Save className="w-4 h-4" />
+              <span>Simpan</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -872,26 +888,28 @@ export const DaftarHadirView: React.FC = () => {
               </div>
 
               {/* Action Buttons: Tambah Santri & Set Semua Hadir */}
-              <div className="flex items-center gap-2 self-stretch sm:self-auto">
-                <button
-                  id="btn-set-semua-hadir-murid"
-                  onClick={handleSetAllHadirMurid}
-                  title="Tandai semua santri di filter ini sebagai Hadir"
-                  className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-2xs"
-                >
-                  <CheckCheck className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>Set Semua Hadir</span>
-                </button>
+              {canEdit && (
+                <div className="flex items-center gap-2 self-stretch sm:self-auto">
+                  <button
+                    id="btn-set-semua-hadir-murid"
+                    onClick={handleSetAllHadirMurid}
+                    title="Tandai semua santri di filter ini sebagai Hadir"
+                    className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-2xs"
+                  >
+                    <CheckCheck className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Set Semua Hadir</span>
+                  </button>
 
-                <button
-                  id="btn-tambah-santri-presensi"
-                  onClick={handleOpenAddMurid}
-                  className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>+ Tambah Santri</span>
-                </button>
-              </div>
+                  <button
+                    id="btn-tambah-santri-presensi"
+                    onClick={handleOpenAddMurid}
+                    className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>+ Tambah Santri</span>
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Search Bar */}
@@ -967,69 +985,87 @@ export const DaftarHadirView: React.FC = () => {
 
                     {/* Status & CRUD Action Buttons */}
                     <div className="flex items-center gap-2 self-end sm:self-center">
-                      {/* Status Toggle Buttons */}
-                      <div className="flex items-center gap-1 bg-slate-50 p-1 rounded-xl border border-slate-200">
-                        <button
-                          onClick={() => handleUpdateStatusMurid(item.id, 'Hadir')}
-                          className={`px-2.5 py-1 rounded-lg text-[10px] font-extrabold transition-all cursor-pointer ${
-                            item.status === 'Hadir'
-                              ? 'bg-emerald-600 text-white shadow-xs'
-                              : 'text-slate-600 hover:bg-emerald-50'
-                          }`}
-                        >
-                          Hadir
-                        </button>
-                        <button
-                          onClick={() => handleUpdateStatusMurid(item.id, 'Sakit')}
-                          className={`px-2.5 py-1 rounded-lg text-[10px] font-extrabold transition-all cursor-pointer ${
-                            item.status === 'Sakit'
-                              ? 'bg-amber-500 text-white shadow-xs'
-                              : 'text-slate-600 hover:bg-amber-50'
-                          }`}
-                        >
-                          Sakit
-                        </button>
-                        <button
-                          onClick={() => handleUpdateStatusMurid(item.id, 'Ijin')}
-                          className={`px-2.5 py-1 rounded-lg text-[10px] font-extrabold transition-all cursor-pointer ${
-                            item.status === 'Ijin'
-                              ? 'bg-blue-600 text-white shadow-xs'
-                              : 'text-slate-600 hover:bg-blue-50'
-                          }`}
-                        >
-                          Ijin
-                        </button>
-                        <button
-                          onClick={() => handleUpdateStatusMurid(item.id, 'Alpha')}
-                          className={`px-2.5 py-1 rounded-lg text-[10px] font-extrabold transition-all cursor-pointer ${
-                            item.status === 'Alpha'
-                              ? 'bg-rose-600 text-white shadow-xs'
-                              : 'text-slate-600 hover:bg-rose-50'
-                          }`}
-                        >
-                          Alpha
-                        </button>
-                      </div>
+                      {canEdit ? (
+                        <>
+                          {/* Status Toggle Buttons */}
+                          <div className="flex items-center gap-1 bg-slate-50 p-1 rounded-xl border border-slate-200">
+                            <button
+                              onClick={() => handleUpdateStatusMurid(item.id, 'Hadir')}
+                              className={`px-2.5 py-1 rounded-lg text-[10px] font-extrabold transition-all cursor-pointer ${
+                                item.status === 'Hadir'
+                                  ? 'bg-emerald-600 text-white shadow-xs'
+                                  : 'text-slate-600 hover:bg-emerald-50'
+                              }`}
+                            >
+                              Hadir
+                            </button>
+                            <button
+                              onClick={() => handleUpdateStatusMurid(item.id, 'Sakit')}
+                              className={`px-2.5 py-1 rounded-lg text-[10px] font-extrabold transition-all cursor-pointer ${
+                                item.status === 'Sakit'
+                                  ? 'bg-amber-500 text-white shadow-xs'
+                                  : 'text-slate-600 hover:bg-amber-50'
+                              }`}
+                            >
+                              Sakit
+                            </button>
+                            <button
+                              onClick={() => handleUpdateStatusMurid(item.id, 'Ijin')}
+                              className={`px-2.5 py-1 rounded-lg text-[10px] font-extrabold transition-all cursor-pointer ${
+                                item.status === 'Ijin'
+                                  ? 'bg-blue-600 text-white shadow-xs'
+                                  : 'text-slate-600 hover:bg-blue-50'
+                              }`}
+                            >
+                              Ijin
+                            </button>
+                            <button
+                              onClick={() => handleUpdateStatusMurid(item.id, 'Alpha')}
+                              className={`px-2.5 py-1 rounded-lg text-[10px] font-extrabold transition-all cursor-pointer ${
+                                item.status === 'Alpha'
+                                  ? 'bg-rose-600 text-white shadow-xs'
+                                  : 'text-slate-600 hover:bg-rose-50'
+                              }`}
+                            >
+                              Alpha
+                            </button>
+                          </div>
 
-                      {/* Edit & Delete Action Buttons */}
-                      <div className="flex items-center gap-1">
-                        <button
-                          id={`btn-edit-murid-${item.id}`}
-                          onClick={() => handleOpenEditMurid(item)}
-                          title="Edit Data Santri"
-                          className="p-1.5 text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-all cursor-pointer"
+                          {/* Edit & Delete Action Buttons */}
+                          <div className="flex items-center gap-1">
+                            <button
+                              id={`btn-edit-murid-${item.id}`}
+                              onClick={() => handleOpenEditMurid(item)}
+                              title="Edit Data Santri"
+                              className="p-1.5 text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-all cursor-pointer"
+                            >
+                              <Edit2 className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              id={`btn-delete-murid-${item.id}`}
+                              onClick={() => setDeletingMurid(item)}
+                              title="Hapus Dari Daftar Hadir"
+                              className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all cursor-pointer"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </>
+                      ) : (
+                        <span
+                          className={`px-3 py-1 rounded-xl text-xs font-black border ${
+                            item.status === 'Hadir'
+                              ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                              : item.status === 'Sakit'
+                              ? 'bg-amber-100 text-amber-800 border-amber-300'
+                              : item.status === 'Ijin'
+                              ? 'bg-blue-100 text-blue-800 border-blue-300'
+                              : 'bg-rose-100 text-rose-800 border-rose-300'
+                          }`}
                         >
-                          <Edit2 className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          id={`btn-delete-murid-${item.id}`}
-                          onClick={() => setDeletingMurid(item)}
-                          title="Hapus Dari Daftar Hadir"
-                          className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all cursor-pointer"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
+                          {item.status === 'Hadir' ? '✅ Hadir' : item.status === 'Sakit' ? '🏥 Sakit' : item.status === 'Ijin' ? 'ℹ️ Ijin' : '❌ Alpha'}
+                        </span>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -1076,14 +1112,16 @@ export const DaftarHadirView: React.FC = () => {
               />
             </div>
 
-            <button
-              id="btn-tambah-asatidz-presensi"
-              onClick={handleOpenAddAsatidz}
-              className="w-full sm:w-auto flex items-center justify-center gap-1.5 bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs"
-            >
-              <Plus className="w-4 h-4" />
-              <span>+ Tambah Asatidz / Staf TU</span>
-            </button>
+            {canEdit && (
+              <button
+                id="btn-tambah-asatidz-presensi"
+                onClick={handleOpenAddAsatidz}
+                className="w-full sm:w-auto flex items-center justify-center gap-1.5 bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs"
+              >
+                <Plus className="w-4 h-4" />
+                <span>+ Tambah Asatidz / Staf TU</span>
+              </button>
+            )}
           </div>
 
           {/* List Asatidz & TU */}
@@ -1158,44 +1196,72 @@ export const DaftarHadirView: React.FC = () => {
 
                     {/* Status & CRUD Action Buttons for Asatidz */}
                     <div className="flex items-center gap-2 self-end sm:self-center">
-                      <select
-                        value={item.status}
-                        onChange={(e) => handleUpdateStatusAsatidz(item.id, e.target.value as any)}
-                        className={`text-xs font-black px-3 py-1.5 rounded-xl border cursor-pointer focus:outline-none ${
-                          item.status === 'Hadir'
-                            ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
-                            : item.status === 'Ijin'
-                            ? 'bg-blue-100 text-blue-800 border-blue-300'
-                            : item.status === 'Sakit'
-                            ? 'bg-amber-100 text-amber-800 border-amber-300'
-                            : item.status === 'Tugas Luar'
-                            ? 'bg-purple-100 text-purple-800 border-purple-300'
-                            : 'bg-rose-100 text-rose-800 border-rose-300'
-                        }`}
-                      >
-                        <option value="Hadir">✅ Hadir</option>
-                        <option value="Ijin">ℹ️ Ijin</option>
-                        <option value="Sakit">🏥 Sakit</option>
-                        <option value="Tugas Luar">🚗 Tugas Luar</option>
-                        <option value="Alpha">❌ Alpha</option>
-                      </select>
+                      {canEdit ? (
+                        <>
+                          <select
+                            value={item.status}
+                            onChange={(e) => handleUpdateStatusAsatidz(item.id, e.target.value as any)}
+                            className={`text-xs font-black px-3 py-1.5 rounded-xl border cursor-pointer focus:outline-none ${
+                              item.status === 'Hadir'
+                                ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                                : item.status === 'Ijin'
+                                ? 'bg-blue-100 text-blue-800 border-blue-300'
+                                : item.status === 'Sakit'
+                                ? 'bg-amber-100 text-amber-800 border-amber-300'
+                                : item.status === 'Tugas Luar'
+                                ? 'bg-purple-100 text-purple-800 border-purple-300'
+                                : 'bg-rose-100 text-rose-800 border-rose-300'
+                            }`}
+                          >
+                            <option value="Hadir">✅ Hadir</option>
+                            <option value="Ijin">ℹ️ Ijin</option>
+                            <option value="Sakit">🏥 Sakit</option>
+                            <option value="Tugas Luar">🚗 Tugas Luar</option>
+                            <option value="Alpha">❌ Alpha</option>
+                          </select>
 
-                      <button
-                        id={`btn-edit-asatidz-${item.id}`}
-                        onClick={() => handleOpenEditAsatidz(item)}
-                        title="Edit Data Asatidz"
-                        className="p-1.5 text-slate-500 hover:text-teal-700 hover:bg-teal-50 rounded-lg transition-all cursor-pointer"
-                      >
-                        <Edit2 className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        id={`btn-delete-asatidz-${item.id}`}
-                        onClick={() => setDeletingAsatidz(item)}
-                        title="Hapus Dari Daftar Hadir"
-                        className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all cursor-pointer"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                          <button
+                            id={`btn-edit-asatidz-${item.id}`}
+                            onClick={() => handleOpenEditAsatidz(item)}
+                            title="Edit Data Asatidz"
+                            className="p-1.5 text-slate-500 hover:text-teal-700 hover:bg-teal-50 rounded-lg transition-all cursor-pointer"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            id={`btn-delete-asatidz-${item.id}`}
+                            onClick={() => setDeletingAsatidz(item)}
+                            title="Hapus Dari Daftar Hadir"
+                            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all cursor-pointer"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </>
+                      ) : (
+                        <span
+                          className={`px-3 py-1 rounded-xl text-xs font-black border ${
+                            item.status === 'Hadir'
+                              ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                              : item.status === 'Ijin'
+                              ? 'bg-blue-100 text-blue-800 border-blue-300'
+                              : item.status === 'Sakit'
+                              ? 'bg-amber-100 text-amber-800 border-amber-300'
+                              : item.status === 'Tugas Luar'
+                              ? 'bg-purple-100 text-purple-800 border-purple-300'
+                              : 'bg-rose-100 text-rose-800 border-rose-300'
+                          }`}
+                        >
+                          {item.status === 'Hadir'
+                            ? '✅ Hadir'
+                            : item.status === 'Ijin'
+                            ? 'ℹ️ Ijin'
+                            : item.status === 'Sakit'
+                            ? '🏥 Sakit'
+                            : item.status === 'Tugas Luar'
+                            ? '🚗 Tugas Luar'
+                            : '❌ Alpha'}
+                        </span>
+                      )}
                     </div>
                   </div>
                 ))}

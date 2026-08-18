@@ -288,3 +288,25 @@ export function canViewMenu(role: UserRole, menuId: MenuId | string): boolean {
   const level = checkMenuAccessLevel(role, menuId);
   return level !== 'none';
 }
+
+export function canManageSettings(role: UserRole): boolean {
+  if (role === 'admin') return true;
+  const permissions = getLocalRolePermissions();
+  const rolePerm = permissions[role];
+  return Boolean(rolePerm?.canManageSettings);
+}
+
+export function canManageUsers(role: UserRole): boolean {
+  if (role === 'admin') return true;
+  const permissions = getLocalRolePermissions();
+  const rolePerm = permissions[role];
+  return Boolean(rolePerm?.canManageUsers);
+}
+
+export function canExportPdf(role: UserRole): boolean {
+  if (role === 'admin') return true;
+  const permissions = getLocalRolePermissions();
+  const rolePerm = permissions[role];
+  return Boolean(rolePerm?.canExportPdf);
+}
+
