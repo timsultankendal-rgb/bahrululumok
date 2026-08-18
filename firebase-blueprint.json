@@ -1,0 +1,83 @@
+{
+  "entities": {
+    "PresensiHarian": {
+      "title": "Presensi Harian",
+      "description": "Rekapitulasi presensi harian santri dan dewan asatidz madrasah",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "tanggal": { "type": "string" },
+        "tanggalFormat": { "type": "string" },
+        "murid": { "type": "array" },
+        "asatidz": { "type": "array" },
+        "totalHadirMurid": { "type": "number" },
+        "totalSakitMurid": { "type": "number" },
+        "totalIjinMurid": { "type": "number" },
+        "totalAlphaMurid": { "type": "number" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["tanggal", "murid", "asatidz"]
+    },
+    "Santri": {
+      "title": "Data Santri",
+      "description": "Master data identitas dan status santri",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "nama": { "type": "string" },
+        "noInduk": { "type": "string" },
+        "kelas": { "type": "string" },
+        "jenisKelamin": { "type": "string" },
+        "status": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "nama", "kelas"]
+    },
+    "Asatidz": {
+      "title": "Data Asatidz & Pegawai",
+      "description": "Master data dewan guru, asatidz, dan tenaga kependidikan",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "nama": { "type": "string" },
+        "niy": { "type": "string" },
+        "jabatan": { "type": "string" },
+        "tugas": { "type": "string" },
+        "status": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "nama", "jabatan"]
+    },
+    "MenuRecord": {
+      "title": "Catatan Menu Madrasah",
+      "description": "Data dinamis untuk 18 menu madrasah seperti nilai rapor, syahriyah, tata tertib, catatan kegiatan",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "menuKey": { "type": "string" },
+        "title": { "type": "string" },
+        "payload": { "type": "object" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "menuKey"]
+    }
+  },
+  "firestore": {
+    "/presensi_harian/{tanggal}": {
+      "schema": "PresensiHarian",
+      "description": "Dokumen presensi harian per tanggal ISO (contoh: 2026-08-18)"
+    },
+    "/santri/{santriId}": {
+      "schema": "Santri",
+      "description": "Dokumen santri madrasah"
+    },
+    "/asatidz/{asatidzId}": {
+      "schema": "Asatidz",
+      "description": "Dokumen dewan asatidz dan pegawai"
+    },
+    "/menu_records/{recordId}": {
+      "schema": "MenuRecord",
+      "description": "Penyimpanan data generik untuk 18 modul menu madrasah"
+    }
+  }
+}

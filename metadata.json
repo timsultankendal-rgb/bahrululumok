@@ -1,0 +1,6 @@
+{
+  "name": "MadrasahKu Mobile",
+  "description": "Aplikasi portal digital madrasah terpadu dengan antarmuka Android APK modern untuk santri/siswa, guru, dan wali murid.",
+  "requestFramePermissions": ["camera", "geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
