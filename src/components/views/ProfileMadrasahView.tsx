@@ -143,7 +143,7 @@ export const ProfileMadrasahView: React.FC<ProfileMadrasahViewProps> = ({
             </p>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex flex-wrap items-center gap-2">
             <div className="flex items-center gap-1.5 bg-white/15 px-3 py-1.5 rounded-2xl border border-white/20 text-xs font-semibold backdrop-blur-xs text-white">
               <Cloud className="w-4 h-4 text-emerald-300 animate-pulse" />
               <span>{cloudStatus === 'synced' ? 'Cloud Terhubung' : 'Offline'}</span>

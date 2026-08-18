@@ -56,7 +56,7 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
   };
 
   return (
-    <nav className="sticky bottom-0 z-30 bg-white/95 backdrop-blur-md border-t border-slate-200/80 text-slate-500 px-2 py-1.5 shadow-lg">
+    <nav className="sticky bottom-0 z-30 bg-white/95 backdrop-blur-md border-t border-slate-200/80 text-slate-500 px-1 sm:px-2 py-1 shadow-lg">
       <div className="flex items-center justify-around">
         {primaryTabs.map((tab) => {
           const Icon = tab.icon;
@@ -67,27 +67,27 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
               key={tab.id}
               id={`tab-btn-${tab.id}`}
               onClick={() => handleTabClick(tab.id)}
-              className={`relative flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition-all duration-200 cursor-pointer ${
+              className={`relative flex flex-col items-center justify-center py-1 px-1.5 sm:px-2.5 rounded-xl transition-all duration-200 cursor-pointer min-w-0 ${
                 isActive
                   ? 'text-emerald-700 font-bold'
                   : 'text-slate-500 hover:text-slate-800'
               }`}
             >
               {isActive && (
-                <div className="absolute top-0.5 inset-x-1 h-8 bg-emerald-50 rounded-xl -z-10 border border-emerald-200 shadow-2xs" />
+                <div className="absolute top-0.5 inset-x-0.5 h-8 bg-emerald-50 rounded-xl -z-10 border border-emerald-200 shadow-2xs" />
               )}
 
               <div className="relative">
-                <Icon className={`w-5 h-5 transition-transform ${isActive ? 'scale-110 text-emerald-700' : 'text-slate-400'}`} />
+                <Icon className={`w-4 h-4 sm:w-5 sm:h-5 transition-transform ${isActive ? 'scale-110 text-emerald-700' : 'text-slate-400'}`} />
 
                 {tab.badge && !isActive && (
-                  <span className="absolute -top-1 -right-3 bg-emerald-100 text-emerald-800 text-[8px] font-bold px-1 rounded-full border border-emerald-200 shadow-2xs">
+                  <span className="absolute -top-1 -right-2.5 bg-emerald-100 text-emerald-800 text-[7px] sm:text-[8px] font-bold px-1 rounded-full border border-emerald-200 shadow-2xs">
                     {tab.badge}
                   </span>
                 )}
               </div>
 
-              <span className={`text-[10px] mt-0.5 tracking-tight ${isActive ? 'text-emerald-800 font-extrabold' : 'text-slate-500 font-medium'}`}>
+              <span className={`text-[9px] sm:text-[10px] mt-0.5 tracking-tight truncate max-w-[54px] sm:max-w-none ${isActive ? 'text-emerald-800 font-extrabold' : 'text-slate-500 font-medium'}`}>
                 {tab.label}
               </span>
             </button>
@@ -101,13 +101,13 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
               playTapSound();
               onToggleSidebar();
             }}
-            className="relative flex flex-col items-center justify-center py-1 px-2.5 rounded-xl text-teal-800 hover:text-teal-950 transition-all cursor-pointer"
+            className="relative flex flex-col items-center justify-center py-1 px-1.5 sm:px-2.5 rounded-xl text-teal-800 hover:text-teal-950 transition-all cursor-pointer min-w-0"
             title="Buka 18 Menu Sisi Kiri"
           >
-            <div className="p-1 rounded-lg bg-teal-50 border border-teal-200">
-              <Grid className="w-4 h-4 text-teal-700" />
+            <div className="p-0.5 sm:p-1 rounded-lg bg-teal-50 border border-teal-200">
+              <Grid className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-teal-700" />
             </div>
-            <span className="text-[10px] mt-0.5 font-extrabold text-teal-800">
+            <span className="text-[9px] sm:text-[10px] mt-0.5 font-extrabold text-teal-800 truncate">
               18 Menu
             </span>
           </button>

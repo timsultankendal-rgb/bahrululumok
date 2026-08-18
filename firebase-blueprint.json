@@ -60,6 +60,39 @@
         "updatedAt": { "type": "string" }
       },
       "required": ["id", "menuKey"]
+    },
+    "UserAccount": {
+      "title": "Akun Pengguna",
+      "description": "Akun login pengguna madrasah (admin, guru/asatidz, wali santri, murid)",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "username": { "type": "string" },
+        "fullName": { "type": "string" },
+        "role": { "type": "string" },
+        "password": { "type": "string" },
+        "identifier": { "type": "string" },
+        "kelas": { "type": "string" },
+        "noWa": { "type": "string" },
+        "isActive": { "type": "boolean" },
+        "lastLogin": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "username", "fullName", "role"]
+    },
+    "RolePermission": {
+      "title": "Pengaturan Hak Akses Peran",
+      "description": "Konfigurasi izin akses menu (read, write, none) untuk setiap peran",
+      "type": "object",
+      "properties": {
+        "role": { "type": "string" },
+        "roleName": { "type": "string" },
+        "menuAccess": { "type": "object" },
+        "canManageUsers": { "type": "boolean" },
+        "canManageSettings": { "type": "boolean" },
+        "canExportPdf": { "type": "boolean" }
+      },
+      "required": ["role", "menuAccess"]
     }
   },
   "firestore": {
@@ -78,6 +111,14 @@
     "/menu_records/{recordId}": {
       "schema": "MenuRecord",
       "description": "Penyimpanan data generik untuk 18 modul menu madrasah"
+    },
+    "/user_accounts/{userId}": {
+      "schema": "UserAccount",
+      "description": "Master data akun login pengguna"
+    },
+    "/role_permissions/{roleKey}": {
+      "schema": "RolePermission",
+      "description": "Konfigurasi hak akses menu berdasarkan role"
     }
   }
 }

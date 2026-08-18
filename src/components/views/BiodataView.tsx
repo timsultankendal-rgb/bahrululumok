@@ -693,7 +693,7 @@ export const BiodataView: React.FC = () => {
               <p className="text-xs text-slate-400 mt-1">Coba gunakan kata kunci lain atau tambahkan asatidz baru.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3.5 sm:gap-4">
               {filteredAsatidz.map((ast) => (
                 <div
                   key={ast.id}
@@ -849,7 +849,7 @@ export const BiodataView: React.FC = () => {
               <p className="text-xs text-slate-400 mt-1">Coba ganti filter kelas atau tambahkan santri baru.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3.5 sm:gap-4">
               {filteredMurid.map((mrd) => (
                 <div
                   key={mrd.id}

@@ -82,11 +82,11 @@ export const PrestasiView: React.FC = () => {
       </div>
 
       {/* Grid of Prestasi */}
-      <div className="space-y-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
         {filteredList.map((item) => (
           <div
             key={item.id}
-            className="bg-white rounded-3xl border border-slate-200 shadow-xs hover:shadow-md transition-all p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+            className="bg-white rounded-3xl border border-slate-200 shadow-xs hover:shadow-md transition-all p-4 flex flex-col justify-between gap-3"
           >
             <div className="flex items-start gap-3.5">
               <div className="w-12 h-12 rounded-2xl bg-amber-100 border border-amber-300 text-amber-800 flex items-center justify-center shrink-0 shadow-2xs">

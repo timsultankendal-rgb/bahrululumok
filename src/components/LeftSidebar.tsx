@@ -26,7 +26,9 @@ import {
   Search,
   BookOpen,
   QrCode,
-  Settings
+  Settings,
+  KeyRound,
+  LogIn
 } from 'lucide-react';
 import { TabType, UserRole } from '../types';
 import { playTapSound } from '../utils/audio';
@@ -43,6 +45,8 @@ interface LeftSidebarProps {
   onOpenIdCard?: () => void;
   branding?: AppBrandingConfig;
   onOpenBrandingSettings?: () => void;
+  onOpenLogin?: () => void;
+  onOpenHakAkses?: () => void;
 }
 
 interface MenuItemDef {
@@ -65,6 +69,8 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
   onOpenIdCard,
   branding = DEFAULT_BRANDING,
   onOpenBrandingSettings,
+  onOpenLogin,
+  onOpenHakAkses,
 }) => {
   const [searchFilter, setSearchFilter] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<'Semua' | 'KBM & Santri' | 'Administrasi & Profil' | 'Informasi Lembaga'>('Semua');
@@ -615,8 +621,44 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
           )}
         </div>
 
+        {/* Quick Settings & Auth Action Buttons */}
+        <div className="p-3 bg-slate-50/90 border-t border-slate-200/90 space-y-1.5 shrink-0">
+          {onOpenHakAkses && (
+            <button
+              onClick={() => {
+                playTapSound();
+                onOpenHakAkses();
+                if (window.innerWidth < 1024) onClose();
+              }}
+              className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-xs font-bold transition-all cursor-pointer shadow-2xs"
+            >
+              <div className="flex items-center gap-2">
+                <KeyRound className="w-4 h-4 text-amber-700" />
+                <span>Pengaturan Hak Akses Login</span>
+              </div>
+              <span className="text-[9px] bg-amber-200 text-amber-950 font-black px-1.5 py-0.2 rounded">
+                RBAC
+              </span>
+            </button>
+          )}
+
+          {onOpenLogin && (
+            <button
+              onClick={() => {
+                playTapSound();
+                onOpenLogin();
+                if (window.innerWidth < 1024) onClose();
+              }}
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black transition-all cursor-pointer shadow-xs"
+            >
+              <LogIn className="w-4 h-4" />
+              <span>Halaman Login / Ganti Akun</span>
+            </button>
+          )}
+        </div>
+
         {/* Footer Info */}
-        <div className="p-3 bg-slate-50 border-t border-slate-200/80 text-[10px] text-slate-400 font-medium text-center shrink-0">
+        <div className="p-2.5 bg-slate-100 border-t border-slate-200/80 text-[10px] text-slate-400 font-medium text-center shrink-0">
           <span className="text-emerald-800 font-bold">Madrasah Diniyah Al-Ikhlas</span> • E-Sistem V.2.5
         </div>
       </aside>

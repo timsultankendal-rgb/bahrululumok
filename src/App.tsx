@@ -20,6 +20,16 @@ import {
   BerandaConfig,
   DEFAULT_BERANDA_CONFIG
 } from './components/modals/EditBerandaModal';
+import { LoginPage } from './components/auth/LoginPage';
+import { HakAksesSettingsModal } from './components/modals/HakAksesSettingsModal';
+import { 
+  getSavedAuthSession, 
+  saveAuthSession, 
+  canViewMenu, 
+  checkMenuAccessLevel 
+} from './services/authService';
+import { Lock, LogIn, ShieldAlert, ArrowLeft } from 'lucide-react';
+import { playTapSound } from './utils/audio';
 
 // 18 Requested Madrasah Views
 import { DaftarHadirView } from './components/views/DaftarHadirView';
@@ -118,6 +128,25 @@ export default function App() {
   const [isBrandingModalOpen, setIsBrandingModalOpen] = useState<boolean>(false);
   const [isEditBerandaOpen, setIsEditBerandaOpen] = useState<boolean>(false);
   const [selectedPengumuman, setSelectedPengumuman] = useState<PengumumanItem | null>(null);
+
+  // Auth & RBAC State
+  const [authSession, setAuthSession] = useState(() => getSavedAuthSession());
+  const [isLoginOpen, setIsLoginOpen] = useState<boolean>(false);
+  const [isHakAksesOpen, setIsHakAksesOpen] = useState<boolean>(false);
+
+  // Sync role when session changes
+  useEffect(() => {
+    if (authSession?.role) {
+      setActiveRole(authSession.role);
+    }
+  }, [authSession]);
+
+  const handleLoginSuccess = (session: typeof authSession) => {
+    if (!session) return;
+    setAuthSession(session);
+    setActiveRole(session.role);
+    setIsLoginOpen(false);
+  };
 
   // Subscribe to Cloud Firestore for App Branding
   useEffect(() => {
@@ -225,6 +254,8 @@ export default function App() {
         onOpenIdCard={() => setIsIdCardOpen(true)}
         branding={branding}
         onOpenBrandingSettings={() => setIsBrandingModalOpen(true)}
+        onOpenLogin={() => setIsLoginOpen(true)}
+        onOpenHakAkses={() => setIsHakAksesOpen(true)}
       />
 
       {/* Main Content Area */}
@@ -239,62 +270,110 @@ export default function App() {
           onOpenIdCard={() => setIsIdCardOpen(true)}
           onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
           onChangeRole={setActiveRole}
+          onOpenLogin={() => setIsLoginOpen(true)}
+          onOpenHakAkses={() => setIsHakAksesOpen(true)}
+          currentUser={authSession?.user}
         />
 
         {/* Main Tab Screens Container (Scrollable) */}
         <div className="flex-1 w-full bg-slate-50 overflow-y-auto hide-scrollbar">
-          {/* Default Home / Dashboard */}
-          {activeTab === 'home' && (
-            <HomeTab
-              student={student}
-              teacher={teacher}
-              activeRole={activeRole}
-              prayerTimes={PRAYER_SCHEDULE}
-              jadwalHariIni={JADWAL_PELAJARAN}
-              tugasList={tugasList}
-              mutabaahList={mutabaahList}
-              onToggleMutabaah={handleToggleMutabaah}
-              pengumumanList={pengumumanList}
-              onOpenPresensi={() => setActiveTab('1_daftar_hadir')}
-              onOpenTanyaUstadz={() => setIsTanyaUstadzOpen(true)}
-              onOpenSetoranTahfidz={() => setIsNewTahfidzOpen(true)}
-              onOpenCBT={() => setActiveTab('5_raport')}
-              onOpenSPP={() => setActiveTab('11_syahriyah')}
-              onOpenJadwal={() => setActiveTab('6_jadwal_seragam_mapel')}
-              onOpenQuran={() => setIsTanyaUstadzOpen(true)}
-              onOpenDoa={() => setIsTanyaUstadzOpen(true)}
-              onOpenTasbih={() => setIsTanyaUstadzOpen(true)}
-              onOpenRaport={() => setActiveTab('5_raport')}
-              onOpenPengumumanDetail={(item) => setSelectedPengumuman(item)}
-              presensiHariIni={presensiHariIni}
-              berandaConfig={berandaConfig}
-              onOpenEditBeranda={() => setIsEditBerandaOpen(true)}
-              branding={branding}
-              onOpenBrandingSettings={() => setIsBrandingModalOpen(true)}
-            />
-          )}
+          {/* Permission Check for 18 Menus */}
+          {activeTab !== 'home' && !canViewMenu(activeRole, activeTab as any) ? (
+            <div className="p-4 sm:p-8 max-w-md mx-auto text-center my-10 bg-white rounded-3xl border border-rose-200 shadow-xl space-y-4 animate-in fade-in zoom-in-95">
+              <div className="w-16 h-16 bg-rose-100 text-rose-600 rounded-3xl mx-auto flex items-center justify-center shadow-inner">
+                <Lock className="w-8 h-8" />
+              </div>
+              <div className="space-y-1.5">
+                <span className="text-[10px] font-black text-rose-700 uppercase tracking-wider bg-rose-50 px-3 py-1 rounded-full border border-rose-200 inline-block">
+                  Akses Terbatas
+                </span>
+                <h3 className="text-base sm:text-lg font-black text-slate-800">
+                  Modul Ini Memerlukan Hak Akses Khusus
+                </h3>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  Akun Anda saat ini memiliki peran <strong className="capitalize text-slate-700">{activeRole}</strong>.
+                  Modul ini dikunci sesuai dengan pengaturan Hak Akses Madrasah.
+                </p>
+              </div>
 
-          {/* 18 Individual Madrasah Views */}
-          {activeTab === '1_daftar_hadir' && <DaftarHadirView />}
-          {activeTab === '2_biodata' && <BiodataView />}
-          {activeTab === '3_kopas' && <KopasView />}
-          {activeTab === '4_dokumentasi' && <DokumentasiView />}
-          {activeTab === '5_raport' && <RaportView />}
-          {activeTab === '6_jadwal_seragam_mapel' && <JadwalSeragamMapelView />}
-          {activeTab === '7_profile_madrasah' && (
-            <ProfileMadrasahView onOpenBrandingSettings={() => setIsBrandingModalOpen(true)} />
+              <div className="pt-2 flex flex-col sm:flex-row gap-2 justify-center">
+                <button
+                  onClick={() => {
+                    playTapSound();
+                    setActiveTab('home');
+                  }}
+                  className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-2xl transition-all cursor-pointer"
+                >
+                  Kembali ke Beranda
+                </button>
+                <button
+                  onClick={() => {
+                    playTapSound();
+                    setIsLoginOpen(true);
+                  }}
+                  className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-2xl shadow-md transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                  <LogIn className="w-4 h-4" />
+                  <span>Ganti Akun Login</span>
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              {/* Default Home / Dashboard */}
+              {activeTab === 'home' && (
+                <HomeTab
+                  student={student}
+                  teacher={teacher}
+                  activeRole={activeRole}
+                  prayerTimes={PRAYER_SCHEDULE}
+                  jadwalHariIni={JADWAL_PELAJARAN}
+                  tugasList={tugasList}
+                  mutabaahList={mutabaahList}
+                  onToggleMutabaah={handleToggleMutabaah}
+                  pengumumanList={pengumumanList}
+                  onOpenPresensi={() => setActiveTab('1_daftar_hadir')}
+                  onOpenTanyaUstadz={() => setIsTanyaUstadzOpen(true)}
+                  onOpenSetoranTahfidz={() => setIsNewTahfidzOpen(true)}
+                  onOpenCBT={() => setActiveTab('5_raport')}
+                  onOpenSPP={() => setActiveTab('11_syahriyah')}
+                  onOpenJadwal={() => setActiveTab('6_jadwal_seragam_mapel')}
+                  onOpenQuran={() => setIsTanyaUstadzOpen(true)}
+                  onOpenDoa={() => setIsTanyaUstadzOpen(true)}
+                  onOpenTasbih={() => setIsTanyaUstadzOpen(true)}
+                  onOpenRaport={() => setActiveTab('5_raport')}
+                  onOpenPengumumanDetail={(item) => setSelectedPengumuman(item)}
+                  presensiHariIni={presensiHariIni}
+                  berandaConfig={berandaConfig}
+                  onOpenEditBeranda={() => setIsEditBerandaOpen(true)}
+                  branding={branding}
+                  onOpenBrandingSettings={() => setIsBrandingModalOpen(true)}
+                />
+              )}
+
+              {/* 18 Individual Madrasah Views */}
+              {activeTab === '1_daftar_hadir' && <DaftarHadirView />}
+              {activeTab === '2_biodata' && <BiodataView />}
+              {activeTab === '3_kopas' && <KopasView />}
+              {activeTab === '4_dokumentasi' && <DokumentasiView />}
+              {activeTab === '5_raport' && <RaportView />}
+              {activeTab === '6_jadwal_seragam_mapel' && <JadwalSeragamMapelView />}
+              {activeTab === '7_profile_madrasah' && (
+                <ProfileMadrasahView onOpenBrandingSettings={() => setIsBrandingModalOpen(true)} />
+              )}
+              {activeTab === '8_catatan_kegiatan' && <CatatanKegiatanView />}
+              {activeTab === '9_visi_misi' && <VisiMisiView />}
+              {activeTab === '10_mutakhorijin' && <MutakhorijinView />}
+              {activeTab === '11_syahriyah' && <SyahriyahView />}
+              {activeTab === '12_jadwal_tahunan' && <JadwalTahunanView />}
+              {activeTab === '13_tata_tertib' && <TataTertibView />}
+              {activeTab === '14_syarat_pendaftaran' && <SyaratPendaftaranView />}
+              {activeTab === '15_fasilitas' && <FasilitasView />}
+              {activeTab === '16_ekstrakurikuler' && <EkstrakurikulerView />}
+              {activeTab === '17_prestasi' && <PrestasiView />}
+              {activeTab === '18_kontak_rekening' && <KontakRekeningView />}
+            </>
           )}
-          {activeTab === '8_catatan_kegiatan' && <CatatanKegiatanView />}
-          {activeTab === '9_visi_misi' && <VisiMisiView />}
-          {activeTab === '10_mutakhorijin' && <MutakhorijinView />}
-          {activeTab === '11_syahriyah' && <SyahriyahView />}
-          {activeTab === '12_jadwal_tahunan' && <JadwalTahunanView />}
-          {activeTab === '13_tata_tertib' && <TataTertibView />}
-          {activeTab === '14_syarat_pendaftaran' && <SyaratPendaftaranView />}
-          {activeTab === '15_fasilitas' && <FasilitasView />}
-          {activeTab === '16_ekstrakurikuler' && <EkstrakurikulerView />}
-          {activeTab === '17_prestasi' && <PrestasiView />}
-          {activeTab === '18_kontak_rekening' && <KontakRekeningView />}
         </div>
 
         {/* Bottom Navigation Bar (Visible on Mobile / Small screens) */}
@@ -321,6 +400,29 @@ export default function App() {
         config={berandaConfig}
         onSave={handleSaveBerandaConfig}
       />
+
+      {/* Login Page Modal */}
+      {isLoginOpen && (
+        <LoginPage
+          isOpen={isLoginOpen}
+          onClose={() => setIsLoginOpen(false)}
+          onLoginSuccess={handleLoginSuccess}
+          branding={branding}
+          currentRole={activeRole}
+        />
+      )}
+
+      {/* Hak Akses & Akun Login Settings Modal */}
+      {isHakAksesOpen && (
+        <HakAksesSettingsModal
+          isOpen={isHakAksesOpen}
+          onClose={() => setIsHakAksesOpen(false)}
+          onPermissionsUpdated={() => {
+            // Re-render when permissions change
+            setActiveRole((r) => r);
+          }}
+        />
+      )}
 
       {isPresensiOpen && (
         <AbsensiModal

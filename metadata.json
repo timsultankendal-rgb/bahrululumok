@@ -1,6 +1,6 @@
 {
   "name": "MadrasahKu Mobile",
-  "description": "Aplikasi portal digital madrasah terpadu dengan antarmuka Android APK modern untuk santri/siswa, guru, dan wali murid.",
+  "description": "Aplikasi portal digital madrasah terpadu dengan 18 modul KBM & Administrasi, sistem otentikasi login multi-peran, dan pengaturan hak akses (RBAC) tersinkronisasi Cloud Firestore.",
   "requestFramePermissions": ["camera", "geolocation"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

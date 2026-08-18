@@ -34,6 +34,18 @@ service cloud.firestore {
       allow create, update, delete: if isValidId(recordId);
     }
 
+    // User accounts collection
+    match /user_accounts/{userId} {
+      allow get, list: if true;
+      allow create, update, delete: if isValidId(userId);
+    }
+
+    // Role permissions collection
+    match /role_permissions/{roleKey} {
+      allow get, list: if true;
+      allow create, update, delete: if isValidId(roleKey);
+    }
+
     // Connection test document
     match /test/{docId} {
       allow read, write: if true;

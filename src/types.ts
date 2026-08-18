@@ -555,3 +555,51 @@ export interface DoaItem {
   kategori: string;
   riwayat?: string;
 }
+
+// ----------------------------------------------------
+// HAK AKSES & OTENTIKASI LOGIN (RBAC & AUTHENTICATION)
+// ----------------------------------------------------
+export type AccessLevel = 'none' | 'read' | 'read_write';
+
+export interface RolePermissions {
+  role: UserRole;
+  roleName: string;
+  badgeColor: string;
+  description: string;
+  menuAccess: Record<MenuId | string, AccessLevel>;
+  canManageUsers: boolean;
+  canManageSettings: boolean;
+  canExportPdf: boolean;
+}
+
+export interface UserAccount {
+  id: string;
+  username: string;
+  fullName: string;
+  role: UserRole;
+  password?: string;
+  identifier?: string; // NIS / NIY / No HP / NIP
+  subTitle?: string;
+  kelas?: string;
+  noWa?: string;
+  avatarUrl?: string;
+  isActive: boolean;
+  lastLogin?: string;
+  createdAt: string;
+}
+
+export interface AuthSession {
+  user: UserAccount;
+  role: UserRole;
+  loginAt: string;
+  isRemembered?: boolean;
+}
+
+export interface AccessSecurityConfig {
+  allowGuestPreview: boolean;
+  sessionTimeoutHours: number;
+  requireStrongPin: boolean;
+  autoSyncCloud: boolean;
+  lastUpdated: string;
+}
+
