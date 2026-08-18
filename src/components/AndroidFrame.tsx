@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Wifi, Battery, Signal, Smartphone, Maximize2, Minimize2, Sparkles, Menu, ShieldCheck } from 'lucide-react';
+import { Wifi, Battery, Signal, Smartphone, Maximize2, Minimize2, Sparkles, Menu, ShieldCheck, Edit3 } from 'lucide-react';
 import { UserRole } from '../types';
+import { AppBrandingConfig, DEFAULT_BRANDING } from './modals/AppBrandingModal';
+import { playTapSound } from '../utils/audio';
 
 interface AndroidFrameProps {
   children: React.ReactNode;
@@ -8,6 +10,8 @@ interface AndroidFrameProps {
   onChangeRole: (role: UserRole) => void;
   onOpenNotifications: () => void;
   unreadNotifications: number;
+  branding?: AppBrandingConfig;
+  onOpenBrandingSettings?: () => void;
 }
 
 export const AndroidFrame: React.FC<AndroidFrameProps> = ({
@@ -16,6 +20,8 @@ export const AndroidFrame: React.FC<AndroidFrameProps> = ({
   onChangeRole,
   onOpenNotifications,
   unreadNotifications,
+  branding = DEFAULT_BRANDING,
+  onOpenBrandingSettings,
 }) => {
   const [currentTime, setCurrentTime] = useState<string>('07:00');
   const [batteryLevel] = useState<number>(92);
@@ -36,11 +42,36 @@ export const AndroidFrame: React.FC<AndroidFrameProps> = ({
     <div className="min-h-screen bg-gradient-to-br from-slate-100 via-emerald-50/40 to-teal-100/50 text-slate-800 flex flex-col items-center justify-center p-0 sm:p-3 md:p-5 overflow-x-hidden">
       {/* Top Application Header Bar */}
       <header className="w-full max-w-6xl mb-2.5 px-3 hidden sm:flex items-center justify-between text-xs text-slate-600">
-        <div className="flex items-center gap-2.5">
-          <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-          <span className="font-extrabold text-slate-800 tracking-tight">MadrasahKu Digital • MTs Al-Ikhlas Kendal</span>
-          <span className="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full text-[10px] border border-emerald-200 shadow-2xs">
-            Portal Madrasah Kemenag RI
+        <div 
+          onClick={() => {
+            if (onOpenBrandingSettings) {
+              playTapSound();
+              onOpenBrandingSettings();
+            }
+          }}
+          className="flex items-center gap-2.5 cursor-pointer group hover:opacity-90 transition-opacity"
+          title="Klik untuk Mengedit Logo, Nama Aplikasi & Portal Kemenag RI"
+        >
+          <div className="w-7 h-7 rounded-xl bg-white border border-emerald-300/60 shadow-2xs overflow-hidden flex items-center justify-center p-0.5 shrink-0 group-hover:scale-105 transition-transform">
+            {branding.logoUrl ? (
+              <img
+                src={branding.logoUrl}
+                alt={branding.appName}
+                className="w-full h-full object-cover rounded-lg"
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              <Sparkles className="w-4 h-4 text-emerald-600" />
+            )}
+          </div>
+          <span className="font-extrabold text-slate-800 tracking-tight flex items-center gap-1">
+            <span>{branding.appName} {branding.appBadge}</span>
+            <span className="text-slate-400">•</span>
+            <span className="text-emerald-800">{branding.institutionName}</span>
+          </span>
+          <span className="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full text-[10px] border border-emerald-200 shadow-2xs group-hover:bg-emerald-200 transition-colors flex items-center gap-1">
+            <span>{branding.portalBadge || 'Portal Madrasah Kemenag RI'}</span>
+            <Edit3 className="w-2.5 h-2.5 opacity-60" />
           </span>
         </div>
 
@@ -79,6 +110,17 @@ export const AndroidFrame: React.FC<AndroidFrameProps> = ({
               }`}
             >
               Wali Murid
+            </button>
+            <button
+              id="role-btn-admin-top"
+              onClick={() => onChangeRole('admin')}
+              className={`px-3 py-1 rounded-xl font-bold transition-all cursor-pointer ${
+                activeRole === 'admin'
+                  ? 'bg-indigo-600 text-white shadow-xs'
+                  : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              Admin
             </button>
           </div>
         </div>

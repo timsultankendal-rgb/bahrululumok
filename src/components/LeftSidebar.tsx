@@ -295,6 +295,11 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
               <p className="text-[10px] text-emerald-100 font-medium truncate">
                 {branding.institutionName}
               </p>
+              {branding.portalBadge && (
+                <span className="inline-block mt-0.5 text-[8px] bg-emerald-950/50 text-emerald-200 font-semibold px-1.5 py-0.2 rounded border border-white/10 truncate max-w-full">
+                  {branding.portalBadge}
+                </span>
+              )}
             </div>
           </div>
 
@@ -332,8 +337,8 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
               </span>
             </div>
 
-            <div className="flex gap-1">
-              {(['santri', 'guru', 'admin'] as UserRole[]).map((r) => (
+            <div className="flex flex-wrap gap-1">
+              {(['santri', 'guru', 'wali', 'admin'] as UserRole[]).map((r) => (
                 <button
                   key={r}
                   onClick={() => {
@@ -342,7 +347,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                   }}
                   className={`px-2 py-0.5 rounded-md text-[9px] font-extrabold capitalize transition-colors cursor-pointer ${
                     activeRole === r
-                      ? 'bg-emerald-600 text-white'
+                      ? 'bg-emerald-700 text-white shadow-xs'
                       : 'bg-white text-slate-600 hover:bg-slate-200 border border-slate-200'
                   }`}
                 >

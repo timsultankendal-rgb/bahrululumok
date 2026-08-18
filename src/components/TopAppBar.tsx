@@ -12,6 +12,7 @@ interface TopAppBarProps {
   onOpenIdCard: () => void;
   onToggleSidebar?: () => void;
   onOpenSearch?: () => void;
+  onChangeRole?: (role: UserRole) => void;
 }
 
 export const TopAppBar: React.FC<TopAppBarProps> = ({
@@ -22,15 +23,26 @@ export const TopAppBar: React.FC<TopAppBarProps> = ({
   onOpenNotifications,
   onOpenIdCard,
   onToggleSidebar,
+  onChangeRole,
 }) => {
-  const currentName = activeRole === 'guru' ? teacher.name : student.name;
+  const currentName = activeRole === 'guru' ? teacher.name : activeRole === 'admin' ? 'Administrator Madrasah' : student.name;
   const currentPhoto = activeRole === 'guru' ? teacher.photoUrl : student.photoUrl;
   const currentSubtitle =
     activeRole === 'guru'
       ? teacher.title
       : activeRole === 'wali'
       ? `Wali dari ${student.name.split(' ')[0]}`
+      : activeRole === 'admin'
+      ? 'Super Admin / TU'
       : student.level;
+
+  const handleCycleRole = () => {
+    if (!onChangeRole) return;
+    playTapSound();
+    const roles: UserRole[] = ['santri', 'guru', 'wali', 'admin'];
+    const nextIdx = (roles.indexOf(activeRole) + 1) % roles.length;
+    onChangeRole(roles[nextIdx]);
+  };
 
   return (
     <header className="sticky top-0 z-30 bg-gradient-to-r from-emerald-600 via-emerald-600 to-teal-600 backdrop-blur-md text-white px-3 sm:px-4 py-2.5 sm:py-3 border-b border-emerald-500/40 shadow-md">
@@ -79,9 +91,15 @@ export const TopAppBar: React.FC<TopAppBarProps> = ({
             <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-emerald-100">
               <span className="truncate max-w-[100px] sm:max-w-[150px] font-medium">{currentSubtitle}</span>
               <span className="w-1 h-1 rounded-full bg-emerald-200" />
-              <span className="font-extrabold text-emerald-950 capitalize text-[9px] sm:text-[10px] bg-amber-300 px-1.5 py-0.2 rounded-md shadow-xs">
-                {activeRole}
-              </span>
+              <button
+                type="button"
+                onClick={handleCycleRole}
+                title="Klik untuk Beralih Peran Akun (Santri/Guru/Wali/Admin)"
+                className="font-extrabold text-emerald-950 capitalize text-[9px] sm:text-[10px] bg-amber-300 hover:bg-amber-200 active:scale-95 transition-all px-1.5 py-0.2 rounded-md shadow-xs cursor-pointer flex items-center gap-0.5"
+              >
+                <span>{activeRole}</span>
+                <span className="text-[8px] opacity-70">⇄</span>
+              </button>
             </div>
           </div>
         </div>

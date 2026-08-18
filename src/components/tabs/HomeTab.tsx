@@ -34,6 +34,7 @@ import {
 } from '../../types';
 import { playTapSound, playAdzanChime, playSuccessSound } from '../../utils/audio';
 import { BerandaConfig, DEFAULT_BERANDA_CONFIG } from '../modals/EditBerandaModal';
+import { AppBrandingConfig, DEFAULT_BRANDING } from '../modals/AppBrandingModal';
 
 interface HomeTabProps {
   student: StudentProfile;
@@ -59,6 +60,8 @@ interface HomeTabProps {
   presensiHariIni: PresensiRecord | null;
   berandaConfig?: BerandaConfig;
   onOpenEditBeranda?: () => void;
+  branding?: AppBrandingConfig;
+  onOpenBrandingSettings?: () => void;
 }
 
 export const HomeTab: React.FC<HomeTabProps> = ({
@@ -85,6 +88,8 @@ export const HomeTab: React.FC<HomeTabProps> = ({
   presensiHariIni,
   berandaConfig = DEFAULT_BERANDA_CONFIG,
   onOpenEditBeranda,
+  branding = DEFAULT_BRANDING,
+  onOpenBrandingSettings,
 }) => {
   const [adzanSoundEnabled, setAdzanSoundEnabled] = useState<boolean>(true);
   const [nextPrayerCountdown, setNextPrayerCountdown] = useState<string>('01:24:10');
@@ -192,26 +197,53 @@ export const HomeTab: React.FC<HomeTabProps> = ({
         {/* Subtle geometric overlay */}
         <div className="absolute top-0 right-0 w-36 h-36 bg-white/10 rounded-full blur-2xl pointer-events-none" />
 
-        <div className="flex items-start justify-between relative z-10 mb-3">
-          <div>
-            <div className="flex items-center gap-1.5 text-xs text-emerald-100">
-              <span className="font-bold tracking-wider text-amber-300">{berandaConfig.hijriDate || '14 SAFAR 1448 H'}</span>
-              <span>•</span>
-              <span>18 Agustus 2026</span>
-            </div>
-            <h2 className="text-lg font-extrabold text-white mt-0.5 flex items-center gap-1.5">
-              <span>{berandaConfig.bannerTitle || 'MTs Al-Ikhlas Kendal'}</span>
-              {berandaConfig.bannerBadge && (
-                <span className="text-[10px] bg-amber-400 text-emerald-950 font-extrabold px-1.5 py-0.2 rounded uppercase shadow-xs">
-                  {berandaConfig.bannerBadge}
-                </span>
+        <div className="flex items-start justify-between relative z-10 mb-3 gap-2">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            {/* Logo Madrasah */}
+            <div 
+              onClick={() => {
+                if (onOpenBrandingSettings) {
+                  playTapSound();
+                  onOpenBrandingSettings();
+                }
+              }}
+              className="w-12 h-12 rounded-2xl bg-white/20 border border-white/30 overflow-hidden shrink-0 flex items-center justify-center p-0.5 shadow-sm cursor-pointer hover:scale-105 transition-transform"
+              title="Klik untuk Mengganti Logo & Identitas Madrasah"
+            >
+              {branding.logoUrl ? (
+                <img
+                  src={branding.logoUrl}
+                  alt={branding.appName}
+                  className="w-full h-full object-cover rounded-xl"
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                <Sparkles className="w-6 h-6 text-amber-300" />
               )}
-            </h2>
-            {berandaConfig.bannerSubtitle && (
-              <p className="text-[11px] text-emerald-100/90 font-medium line-clamp-1 mt-0.5">
-                {berandaConfig.bannerSubtitle}
-              </p>
-            )}
+            </div>
+
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1.5 text-xs text-emerald-100 flex-wrap">
+                <span className="font-bold tracking-wider text-amber-300">{berandaConfig.hijriDate || '14 SAFAR 1448 H'}</span>
+                <span>•</span>
+                <span className="bg-emerald-950/40 text-emerald-200 px-1.5 py-0.2 rounded font-semibold text-[10px] truncate max-w-[160px]">
+                  {branding.portalBadge || 'Portal Madrasah Kemenag RI'}
+                </span>
+              </div>
+              <h2 className="text-lg font-extrabold text-white mt-0.5 flex items-center gap-1.5 flex-wrap">
+                <span className="truncate">{berandaConfig.bannerTitle || branding.institutionName || 'MTs Al-Ikhlas Kendal'}</span>
+                {berandaConfig.bannerBadge && (
+                  <span className="text-[10px] bg-amber-400 text-emerald-950 font-extrabold px-1.5 py-0.2 rounded uppercase shadow-xs shrink-0">
+                    {berandaConfig.bannerBadge}
+                  </span>
+                )}
+              </h2>
+              {(berandaConfig.bannerSubtitle || branding.appSubtitle) && (
+                <p className="text-[11px] text-emerald-100/90 font-medium line-clamp-1 mt-0.5">
+                  {berandaConfig.bannerSubtitle || branding.appSubtitle}
+                </p>
+              )}
+            </div>
           </div>
 
           <div className="flex items-center gap-1.5 shrink-0">
@@ -262,7 +294,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
 
           <div className="text-right">
             <div className="font-arabic text-xl text-amber-300 leading-none">العصر</div>
-            <span className="text-[10px] text-emerald-200 font-medium">Kemenag RI</span>
+            <span className="text-[10px] text-emerald-200 font-medium">{branding.kemenagText || 'Kemenag RI'}</span>
           </div>
         </div>
 

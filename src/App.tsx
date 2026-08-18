@@ -210,6 +210,8 @@ export default function App() {
       onChangeRole={setActiveRole}
       onOpenNotifications={() => setIsNotificationOpen(true)}
       unreadNotifications={unreadNotifications}
+      branding={branding}
+      onOpenBrandingSettings={() => setIsBrandingModalOpen(true)}
     >
       {/* Left Navigation Sidebar (Menu Tampilan Sisi Kiri dengan 18 Menu) */}
       <LeftSidebar
@@ -236,6 +238,7 @@ export default function App() {
           onOpenNotifications={() => setIsNotificationOpen(true)}
           onOpenIdCard={() => setIsIdCardOpen(true)}
           onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+          onChangeRole={setActiveRole}
         />
 
         {/* Main Tab Screens Container (Scrollable) */}
@@ -266,6 +269,8 @@ export default function App() {
               presensiHariIni={presensiHariIni}
               berandaConfig={berandaConfig}
               onOpenEditBeranda={() => setIsEditBerandaOpen(true)}
+              branding={branding}
+              onOpenBrandingSettings={() => setIsBrandingModalOpen(true)}
             />
           )}
 
@@ -350,6 +355,7 @@ export default function App() {
           teacher={teacher}
           activeRole={activeRole}
           onClose={() => setIsIdCardOpen(false)}
+          branding={branding}
         />
       )}
 

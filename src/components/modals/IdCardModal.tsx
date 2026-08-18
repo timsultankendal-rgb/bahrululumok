@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { X, QrCode, RotateCw, Download, Sparkles, ShieldCheck } from 'lucide-react';
 import { StudentProfile, TeacherProfile, UserRole } from '../../types';
 import { playTapSound } from '../../utils/audio';
+import { AppBrandingConfig, DEFAULT_BRANDING } from './AppBrandingModal';
 
 interface IdCardModalProps {
   student: StudentProfile;
   teacher: TeacherProfile;
   activeRole: UserRole;
   onClose: () => void;
+  branding?: AppBrandingConfig;
 }
 
 export const IdCardModal: React.FC<IdCardModalProps> = ({
@@ -15,6 +17,7 @@ export const IdCardModal: React.FC<IdCardModalProps> = ({
   teacher,
   activeRole,
   onClose,
+  branding = DEFAULT_BRANDING,
 }) => {
   const [isFlipped, setIsFlipped] = useState<boolean>(false);
 
@@ -55,17 +58,28 @@ export const IdCardModal: React.FC<IdCardModalProps> = ({
               <div>
                 <div className="flex items-center justify-between pb-2 mb-3 border-b border-emerald-600/60">
                   <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-xl bg-white/15 p-1 flex items-center justify-center border border-white/20">
-                      <Sparkles className="w-4 h-4 text-amber-300" />
+                    <div className="w-8 h-8 rounded-xl bg-white/15 p-0.5 flex items-center justify-center border border-white/20 overflow-hidden shrink-0">
+                      {branding.logoUrl ? (
+                        <img
+                          src={branding.logoUrl}
+                          alt="Logo"
+                          className="w-full h-full object-cover rounded-lg"
+                          referrerPolicy="no-referrer"
+                        />
+                      ) : (
+                        <Sparkles className="w-4 h-4 text-amber-300" />
+                      )}
                     </div>
                     <div>
-                      <h4 className="text-xs font-black uppercase tracking-wider text-white">
-                        MTs AL-IKHLAS KENDAL
+                      <h4 className="text-xs font-black uppercase tracking-wider text-white truncate max-w-[170px]">
+                        {branding.institutionName || 'MTs AL-IKHLAS KENDAL'}
                       </h4>
-                      <p className="text-[8px] text-emerald-200 font-medium">KEMENAG REPUBLIK INDONESIA</p>
+                      <p className="text-[8px] text-emerald-200 font-medium">
+                        {branding.portalBadge || 'KEMENAG REPUBLIK INDONESIA'}
+                      </p>
                     </div>
                   </div>
-                  <span className="text-[9px] font-mono bg-amber-400 text-emerald-950 font-black px-2 py-0.5 rounded-md shadow-2xs">
+                  <span className="text-[9px] font-mono bg-amber-400 text-emerald-950 font-black px-2 py-0.5 rounded-md shadow-2xs shrink-0">
                     KARTU DIGITAL
                   </span>
                 </div>
