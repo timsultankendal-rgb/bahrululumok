@@ -18,7 +18,8 @@ import {
   BookMarked,
   MapPin,
   Compass,
-  ArrowUpRight
+  ArrowUpRight,
+  Edit3
 } from 'lucide-react';
 import { 
   StudentProfile, 
@@ -32,6 +33,7 @@ import {
   PresensiRecord
 } from '../../types';
 import { playTapSound, playAdzanChime, playSuccessSound } from '../../utils/audio';
+import { BerandaConfig, DEFAULT_BERANDA_CONFIG } from '../modals/EditBerandaModal';
 
 interface HomeTabProps {
   student: StudentProfile;
@@ -55,6 +57,8 @@ interface HomeTabProps {
   onOpenRaport: () => void;
   onOpenPengumumanDetail: (item: PengumumanItem) => void;
   presensiHariIni: PresensiRecord | null;
+  berandaConfig?: BerandaConfig;
+  onOpenEditBeranda?: () => void;
 }
 
 export const HomeTab: React.FC<HomeTabProps> = ({
@@ -79,6 +83,8 @@ export const HomeTab: React.FC<HomeTabProps> = ({
   onOpenRaport,
   onOpenPengumumanDetail,
   presensiHariIni,
+  berandaConfig = DEFAULT_BERANDA_CONFIG,
+  onOpenEditBeranda,
 }) => {
   const [adzanSoundEnabled, setAdzanSoundEnabled] = useState<boolean>(true);
   const [nextPrayerCountdown, setNextPrayerCountdown] = useState<string>('01:24:10');
@@ -189,27 +195,51 @@ export const HomeTab: React.FC<HomeTabProps> = ({
         <div className="flex items-start justify-between relative z-10 mb-3">
           <div>
             <div className="flex items-center gap-1.5 text-xs text-emerald-100">
-              <span className="font-bold tracking-wider text-amber-300">14 SAFAR 1448 H</span>
+              <span className="font-bold tracking-wider text-amber-300">{berandaConfig.hijriDate || '14 SAFAR 1448 H'}</span>
               <span>•</span>
               <span>18 Agustus 2026</span>
             </div>
             <h2 className="text-lg font-extrabold text-white mt-0.5 flex items-center gap-1.5">
-              <span>MTs Al-Ikhlas Kendal</span>
-              <span className="text-[10px] bg-amber-400 text-emerald-950 font-extrabold px-1.5 py-0.2 rounded uppercase shadow-xs">
-                Akreditasi A
-              </span>
+              <span>{berandaConfig.bannerTitle || 'MTs Al-Ikhlas Kendal'}</span>
+              {berandaConfig.bannerBadge && (
+                <span className="text-[10px] bg-amber-400 text-emerald-950 font-extrabold px-1.5 py-0.2 rounded uppercase shadow-xs">
+                  {berandaConfig.bannerBadge}
+                </span>
+              )}
             </h2>
+            {berandaConfig.bannerSubtitle && (
+              <p className="text-[11px] text-emerald-100/90 font-medium line-clamp-1 mt-0.5">
+                {berandaConfig.bannerSubtitle}
+              </p>
+            )}
           </div>
 
-          <button
-            id="adzan-audio-toggle"
-            onClick={handleAdzanChime}
-            className="flex items-center gap-1 px-2.5 py-1 bg-white/15 hover:bg-white/25 rounded-full text-xs text-white border border-white/20 transition-colors shadow-xs"
-            title="Pengingat Suara Adzan"
-          >
-            {adzanSoundEnabled ? <Volume2 className="w-3.5 h-3.5 text-amber-300" /> : <VolumeX className="w-3.5 h-3.5 text-white/70" />}
-            <span className="text-[11px] font-semibold">{adzanSoundEnabled ? 'Adzan On' : 'Mute'}</span>
-          </button>
+          <div className="flex items-center gap-1.5 shrink-0">
+            {onOpenEditBeranda && (
+              <button
+                id="btn-edit-beranda"
+                onClick={() => {
+                  playTapSound();
+                  onOpenEditBeranda();
+                }}
+                className="flex items-center gap-1 px-2.5 py-1 bg-amber-400 hover:bg-amber-300 text-emerald-950 rounded-full text-xs font-black transition-all shadow-xs cursor-pointer"
+                title="Kelola Konten Beranda (Banner, Pengumuman, Sholat)"
+              >
+                <Edit3 className="w-3.5 h-3.5" />
+                <span className="text-[11px]">Edit Beranda</span>
+              </button>
+            )}
+
+            <button
+              id="adzan-audio-toggle"
+              onClick={handleAdzanChime}
+              className="flex items-center gap-1 px-2.5 py-1 bg-white/15 hover:bg-white/25 rounded-full text-xs text-white border border-white/20 transition-colors shadow-xs"
+              title="Pengingat Suara Adzan"
+            >
+              {adzanSoundEnabled ? <Volume2 className="w-3.5 h-3.5 text-amber-300" /> : <VolumeX className="w-3.5 h-3.5 text-white/70" />}
+              <span className="text-[11px] font-semibold">{adzanSoundEnabled ? 'Adzan On' : 'Mute'}</span>
+            </button>
+          </div>
         </div>
 
         {/* Next Prayer Highlight Box */}
@@ -225,7 +255,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
               </div>
               <div className="text-xs font-mono font-bold text-white flex items-center gap-1 mt-0.5">
                 <span>-{nextPrayerCountdown}</span>
-                <span className="text-[10px] font-normal text-emerald-200">(Kendal & sekitarnya)</span>
+                <span className="text-[10px] font-normal text-emerald-200">({berandaConfig.locationLabel || 'Kendal & sekitarnya'})</span>
               </div>
             </div>
           </div>
@@ -238,7 +268,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
 
         {/* Horizontal Prayer Times Bar */}
         <div className="mt-3 pt-2.5 border-t border-white/20 flex items-center justify-between overflow-x-auto hide-scrollbar gap-2 text-center text-xs">
-          {prayerTimes.map((pt) => {
+          {(berandaConfig.prayerSchedule && berandaConfig.prayerSchedule.length > 0 ? berandaConfig.prayerSchedule : prayerTimes).map((pt) => {
             const isTarget = pt.name === 'Ashar';
             return (
               <div
@@ -413,7 +443,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
         </div>
 
         <div className="flex flex-col gap-2">
-          {mutabaahList.slice(0, 4).map((item) => (
+          {(berandaConfig.mutabaahItems && berandaConfig.mutabaahItems.length > 0 ? berandaConfig.mutabaahItems : mutabaahList).map((item) => (
             <button
               key={item.id}
               id={`mutabaah-item-${item.id}`}
@@ -454,7 +484,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
         </div>
 
         <div className="flex flex-col gap-2.5">
-          {pengumumanList.map((ann) => (
+          {(berandaConfig.announcements && berandaConfig.announcements.length > 0 ? berandaConfig.announcements : pengumumanList).map((ann) => (
             <div
               key={ann.id}
               onClick={() => onOpenPengumumanDetail(ann)}

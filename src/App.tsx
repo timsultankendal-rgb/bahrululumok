@@ -15,6 +15,11 @@ import {
   AppBrandingConfig, 
   DEFAULT_BRANDING 
 } from './components/modals/AppBrandingModal';
+import {
+  EditBerandaModal,
+  BerandaConfig,
+  DEFAULT_BERANDA_CONFIG
+} from './components/modals/EditBerandaModal';
 
 // 18 Requested Madrasah Views
 import { DaftarHadirView } from './components/views/DaftarHadirView';
@@ -65,6 +70,7 @@ import {
 } from './services/firestoreService';
 
 const STORAGE_KEY_BRANDING = 'madrasah_app_branding_v2';
+const STORAGE_KEY_BERANDA = 'madrasah_beranda_config_v2';
 
 export default function App() {
   // Navigation & Role State (Defaults to 'home' or Menu 1)
@@ -83,12 +89,23 @@ export default function App() {
     return DEFAULT_BRANDING;
   });
 
+  // Beranda Config State
+  const [berandaConfig, setBerandaConfig] = useState<BerandaConfig>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_BERANDA);
+      if (saved) return JSON.parse(saved);
+    } catch {
+      // fallback
+    }
+    return DEFAULT_BERANDA_CONFIG;
+  });
+
   // Core Data State
   const [student, setStudent] = useState<StudentProfile>(INITIAL_STUDENT);
   const [teacher, setTeacher] = useState<TeacherProfile>(INITIAL_TEACHER);
   const [tugasList, setTugasList] = useState<TugasItem[]>(TUGAS_LIST);
   const [mutabaahList, setMutabaahList] = useState<MutabaahItem[]>(MUTABAAH_ITEMS);
-  const [pengumumanList] = useState<PengumumanItem[]>(PENGUMUMAN_LIST);
+  const [pengumumanList, setPengumumanList] = useState<PengumumanItem[]>(PENGUMUMAN_LIST);
   const [presensiHariIni, setPresensiHariIni] = useState<PresensiRecord | null>(INITIAL_PRESENSI[0]);
   const [unreadNotifications, setUnreadNotifications] = useState<number>(2);
 
@@ -99,6 +116,7 @@ export default function App() {
   const [isNotificationOpen, setIsNotificationOpen] = useState<boolean>(false);
   const [isIdCardOpen, setIsIdCardOpen] = useState<boolean>(false);
   const [isBrandingModalOpen, setIsBrandingModalOpen] = useState<boolean>(false);
+  const [isEditBerandaOpen, setIsEditBerandaOpen] = useState<boolean>(false);
   const [selectedPengumuman, setSelectedPengumuman] = useState<PengumumanItem | null>(null);
 
   // Subscribe to Cloud Firestore for App Branding
@@ -121,11 +139,41 @@ export default function App() {
     };
   }, []);
 
+  // Subscribe to Cloud Firestore for Beranda Config
+  useEffect(() => {
+    let isMounted = true;
+    const unsub = subscribeMenuRecords<BerandaConfig>('beranda_config', (records) => {
+      if (!isMounted) return;
+      if (records && records.length > 0 && records[0].payload) {
+        const payload = records[0].payload;
+        setBerandaConfig(payload);
+        localStorage.setItem(STORAGE_KEY_BERANDA, JSON.stringify(payload));
+      } else {
+        saveMenuRecordToFirestore('beranda_config', 'main', 'Konfigurasi Beranda', DEFAULT_BERANDA_CONFIG);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+      unsub();
+    };
+  }, []);
+
   const handleSaveBranding = async (newBranding: AppBrandingConfig) => {
     setBranding(newBranding);
     localStorage.setItem(STORAGE_KEY_BRANDING, JSON.stringify(newBranding));
     try {
       await saveMenuRecordToFirestore('app_branding', 'main', 'Branding Aplikasi', newBranding);
+    } catch (err) {
+      console.warn('Firestore fallback', err);
+    }
+  };
+
+  const handleSaveBerandaConfig = async (newConfig: BerandaConfig) => {
+    setBerandaConfig(newConfig);
+    localStorage.setItem(STORAGE_KEY_BERANDA, JSON.stringify(newConfig));
+    try {
+      await saveMenuRecordToFirestore('beranda_config', 'main', 'Konfigurasi Beranda', newConfig);
     } catch (err) {
       console.warn('Firestore fallback', err);
     }
@@ -216,6 +264,8 @@ export default function App() {
               onOpenRaport={() => setActiveTab('5_raport')}
               onOpenPengumumanDetail={(item) => setSelectedPengumuman(item)}
               presensiHariIni={presensiHariIni}
+              berandaConfig={berandaConfig}
+              onOpenEditBeranda={() => setIsEditBerandaOpen(true)}
             />
           )}
 
@@ -258,6 +308,13 @@ export default function App() {
         onClose={() => setIsBrandingModalOpen(false)}
         branding={branding}
         onSave={handleSaveBranding}
+      />
+
+      <EditBerandaModal
+        isOpen={isEditBerandaOpen}
+        onClose={() => setIsEditBerandaOpen(false)}
+        config={berandaConfig}
+        onSave={handleSaveBerandaConfig}
       />
 
       {isPresensiOpen && (
