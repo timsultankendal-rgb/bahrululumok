@@ -1,0 +1,13 @@
+{
+  "appId": "com.madrasahku.mobile",
+  "appName": "MadrasahKu Digital",
+  "webDir": "dist",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": true,
+    "backgroundColor": "#064e3b"
+  }
+}

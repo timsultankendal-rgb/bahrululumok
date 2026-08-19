@@ -37,7 +37,8 @@ import {
   X,
   Volume2,
   Quote,
-  User
+  User,
+  Smartphone
 } from 'lucide-react';
 import { AppBrandingConfig, DEFAULT_BRANDING } from '../modals/AppBrandingModal';
 import { SambutanKepalaConfig, DEFAULT_SAMBUTAN_CONFIG } from '../modals/EditSambutanModal';
@@ -50,6 +51,7 @@ interface PublicWebsiteViewProps {
   onNavigateToPortal: (menuId?: string, roleHint?: UserRole) => void;
   branding?: AppBrandingConfig;
   sambutanConfig?: SambutanKepalaConfig;
+  onOpenInstallAndroid?: () => void;
   isLoggedIn?: boolean;
   userRole?: UserRole;
   userName?: string;
@@ -61,6 +63,7 @@ export const PublicWebsiteView: React.FC<PublicWebsiteViewProps> = ({
   onNavigateToPortal,
   branding = DEFAULT_BRANDING,
   sambutanConfig = DEFAULT_SAMBUTAN_CONFIG,
+  onOpenInstallAndroid,
   isLoggedIn = false,
   userRole,
   userName,
@@ -222,6 +225,20 @@ export const PublicWebsiteView: React.FC<PublicWebsiteViewProps> = ({
 
           {/* Action CTAs */}
           <div className="hidden sm:flex items-center gap-2.5">
+            {onOpenInstallAndroid && (
+              <button
+                onClick={() => {
+                  playTapSound();
+                  onOpenInstallAndroid();
+                }}
+                className="px-3 py-2 rounded-2xl bg-amber-400 hover:bg-amber-300 text-emerald-950 font-black text-xs transition-all cursor-pointer flex items-center gap-1.5 shadow-xs hover:scale-[1.02] active:scale-[0.98]"
+                title="Pasang / Install Aplikasi ke HP Android"
+              >
+                <Smartphone className="w-3.5 h-3.5" />
+                <span>Install di Android</span>
+              </button>
+            )}
+
             {isLoggedIn ? (
               <>
                 <button
@@ -332,6 +349,19 @@ export const PublicWebsiteView: React.FC<PublicWebsiteViewProps> = ({
                 <span>18 Modul Portal</span>
               </button>
             </div>
+            {onOpenInstallAndroid && (
+              <button
+                onClick={() => {
+                  playTapSound();
+                  setIsMobileNavOpen(false);
+                  onOpenInstallAndroid();
+                }}
+                className="w-full py-2.5 bg-amber-400 text-emerald-950 font-black text-xs rounded-xl flex items-center justify-center gap-2 shadow-xs"
+              >
+                <Smartphone className="w-4 h-4" />
+                <span>Pasang / Install Aplikasi ke HP Android</span>
+              </button>
+            )}
             {isLoggedIn && onLogout && (
               <button
                 onClick={() => {
@@ -407,6 +437,19 @@ export const PublicWebsiteView: React.FC<PublicWebsiteViewProps> = ({
                   <ArrowRight className="w-4 h-4 text-emerald-900" />
                 </button>
 
+                {onOpenInstallAndroid && (
+                  <button
+                    onClick={() => {
+                      playTapSound();
+                      onOpenInstallAndroid();
+                    }}
+                    className="px-5 py-3.5 rounded-2xl bg-teal-500 hover:bg-teal-400 text-emerald-950 font-black text-sm transition-all cursor-pointer flex items-center gap-2 shadow-xl hover:scale-105 active:scale-95"
+                  >
+                    <Smartphone className="w-5 h-5 text-emerald-950" />
+                    <span>Install di Android</span>
+                  </button>
+                )}
+
                 <button
                   onClick={() => {
                     playTapSound();
@@ -415,7 +458,7 @@ export const PublicWebsiteView: React.FC<PublicWebsiteViewProps> = ({
                   className="px-5 py-3.5 rounded-2xl bg-white/15 hover:bg-white/25 text-white border border-white/20 font-bold text-sm backdrop-blur-xs transition-all cursor-pointer flex items-center gap-2 hover:scale-105 active:scale-95"
                 >
                   <Layers className="w-5 h-5 text-teal-300" />
-                  <span>Jelajahi 18 Modul KBM</span>
+                  <span>Jelajahi 18 Modul</span>
                 </button>
 
                 <a

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bell, Search, ShieldCheck, QrCode, Menu, LogIn, LogOut, ShieldAlert, KeyRound, Globe, Home } from 'lucide-react';
+import { Bell, Search, ShieldCheck, QrCode, Menu, LogIn, LogOut, ShieldAlert, KeyRound, Globe, Home, Smartphone } from 'lucide-react';
 import { StudentProfile, TeacherProfile, UserRole, UserAccount } from '../types';
 import { playTapSound } from '../utils/audio';
 
@@ -16,6 +16,7 @@ interface TopAppBarProps {
   onOpenLogin?: () => void;
   onOpenHakAkses?: () => void;
   onNavigateToHome?: () => void;
+  onOpenInstallAndroid?: () => void;
   onLogout?: () => void;
   currentUser?: UserAccount | null;
 }
@@ -32,6 +33,7 @@ export const TopAppBar: React.FC<TopAppBarProps> = ({
   onOpenLogin,
   onOpenHakAkses,
   onNavigateToHome,
+  onOpenInstallAndroid,
   onLogout,
   currentUser,
 }) => {
@@ -117,6 +119,21 @@ export const TopAppBar: React.FC<TopAppBarProps> = ({
 
         {/* Action Buttons */}
         <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+          {/* Tombol Pasang / Install Android */}
+          {onOpenInstallAndroid && (
+            <button
+              onClick={() => {
+                playTapSound();
+                onOpenInstallAndroid();
+              }}
+              className="p-1.5 sm:px-2.5 sm:py-1.5 rounded-xl sm:rounded-2xl bg-amber-400 hover:bg-amber-300 text-emerald-950 font-black text-[10px] sm:text-xs flex items-center gap-1 shadow-xs transition-all cursor-pointer animate-pulse hover:animate-none"
+              title="Pasang / Install Aplikasi ke HP Android"
+            >
+              <Smartphone className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Install Android</span>
+            </button>
+          )}
+
           {/* Website Utama Button */}
           {onNavigateToHome && (
             <button

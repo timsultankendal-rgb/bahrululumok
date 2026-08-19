@@ -25,6 +25,7 @@ import {
   SambutanKepalaConfig,
   DEFAULT_SAMBUTAN_CONFIG
 } from './components/modals/EditSambutanModal';
+import { InstallAndroidModal } from './components/modals/InstallAndroidModal';
 import { LoginPage } from './components/auth/LoginPage';
 import { LoginPageView } from './components/auth/LoginPageView';
 import { PublicWebsiteView } from './components/public/PublicWebsiteView';
@@ -167,6 +168,7 @@ export default function App() {
   const [isBrandingModalOpen, setIsBrandingModalOpen] = useState<boolean>(false);
   const [isEditBerandaOpen, setIsEditBerandaOpen] = useState<boolean>(false);
   const [isEditSambutanOpen, setIsEditSambutanOpen] = useState<boolean>(false);
+  const [isInstallModalOpen, setIsInstallModalOpen] = useState<boolean>(false);
   const [selectedPengumuman, setSelectedPengumuman] = useState<PengumumanItem | null>(null);
 
   // Auth & RBAC State
@@ -396,6 +398,7 @@ export default function App() {
         onNavigateToPortal={(tab, roleHint) => handleNavigateToPortal(tab, roleHint)}
         branding={branding}
         sambutanConfig={sambutanConfig}
+        onOpenInstallAndroid={() => setIsInstallModalOpen(true)}
         isLoggedIn={!!authSession}
         userRole={authSession?.role}
         userName={authSession?.user?.fullName}
@@ -475,6 +478,7 @@ export default function App() {
           onOpenLogin={() => handleNavigateToLogin()}
           onOpenHakAkses={() => setIsHakAksesOpen(true)}
           onNavigateToHome={() => navigateTo('website')}
+          onOpenInstallAndroid={() => setIsInstallModalOpen(true)}
           onLogout={handleLogout}
           currentUser={authSession?.user}
         />
@@ -616,6 +620,13 @@ export default function App() {
         onClose={() => setIsEditSambutanOpen(false)}
         config={sambutanConfig}
         onSave={handleSaveSambutanConfig}
+      />
+
+      {/* Install Android (PWA & APK) Modal */}
+      <InstallAndroidModal
+        isOpen={isInstallModalOpen}
+        onClose={() => setIsInstallModalOpen(false)}
+        appName={branding.appName}
       />
 
       {/* Login Page Modal */}

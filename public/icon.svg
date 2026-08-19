@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#065f46" />
+      <stop offset="50%" stop-color="#047857" />
+      <stop offset="100%" stop-color="#064e3b" />
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fde68a" />
+      <stop offset="50%" stop-color="#fbbf24" />
+      <stop offset="100%" stop-color="#d97706" />
+    </linearGradient>
+    <linearGradient id="domeGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="100%" stop-color="#e2e8f0" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background Rounded Rect -->
+  <rect width="512" height="512" rx="115" fill="url(#bgGrad)" />
+  
+  <!-- Outer Gold Decorative Border -->
+  <rect x="24" y="24" width="464" height="464" rx="95" fill="none" stroke="url(#goldGrad)" stroke-width="8" opacity="0.4" />
+  
+  <!-- Central Mosque Dome Silhouette -->
+  <path d="M 256 110 C 275 160 350 200 350 270 L 162 270 C 162 200 237 160 256 110 Z" fill="url(#goldGrad)" />
+  
+  <!-- Crescent & Star on Dome -->
+  <circle cx="256" cy="92" r="14" fill="#fbbf24" />
+  <circle cx="261" cy="90" r="11" fill="#065f46" />
+  
+  <!-- Open Quran Book Structure -->
+  <g transform="translate(136, 260)">
+    <!-- Left Page -->
+    <path d="M 120 40 C 70 30 20 45 0 55 L 0 135 C 20 125 70 110 120 120 Z" fill="#ffffff" />
+    <!-- Right Page -->
+    <path d="M 120 40 C 170 30 220 45 240 55 L 240 135 C 220 125 170 110 120 120 Z" fill="#f8fafc" />
+    <!-- Center Spine & Ribbon -->
+    <path d="M 115 35 L 125 35 L 125 145 L 115 145 Z" fill="#d97706" />
+    <!-- Book Base Rehal Stand -->
+    <path d="M 40 145 L 80 175 L 160 175 L 200 145 L 180 140 L 120 155 L 60 140 Z" fill="url(#goldGrad)" />
+    <!-- Calligraphy Lines Simulation -->
+    <line x1="25" y1="75" x2="95" y2="68" stroke="#047857" stroke-width="3" stroke-linecap="round" />
+    <line x1="25" y1="92" x2="95" y2="85" stroke="#047857" stroke-width="3" stroke-linecap="round" />
+    <line x1="25" y1="109" x2="75" y2="102" stroke="#047857" stroke-width="3" stroke-linecap="round" />
+    
+    <line x1="145" y1="68" x2="215" y2="75" stroke="#047857" stroke-width="3" stroke-linecap="round" />
+    <line x1="145" y1="85" x2="215" y2="92" stroke="#047857" stroke-width="3" stroke-linecap="round" />
+    <line x1="165" y1="102" x2="215" y2="109" stroke="#047857" stroke-width="3" stroke-linecap="round" />
+  </g>
+
+  <!-- Typography: MADRASAHKU -->
+  <text x="256" y="465" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-size="34" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="4">MADRASAHKU</text>
+</svg>

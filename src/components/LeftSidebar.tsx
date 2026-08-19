@@ -27,10 +27,8 @@ import {
   BookOpen,
   QrCode,
   Settings,
-  KeyRound,
   LogIn,
-  LogOut,
-  Globe
+  LogOut
 } from 'lucide-react';
 import { TabType, UserRole } from '../types';
 import { playTapSound } from '../utils/audio';
@@ -629,44 +627,6 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
 
         {/* Quick Settings & Auth Action Buttons */}
         <div className="p-3 bg-slate-50/90 border-t border-slate-200/90 space-y-1.5 shrink-0">
-          {onNavigateToHome && (
-            <button
-              onClick={() => {
-                playTapSound();
-                onNavigateToHome();
-                if (window.innerWidth < 1024) onClose();
-              }}
-              className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 text-xs font-bold transition-all cursor-pointer shadow-2xs"
-            >
-              <div className="flex items-center gap-2">
-                <Globe className="w-4 h-4 text-emerald-700" />
-                <span>Website Utama (Beranda)</span>
-              </div>
-              <span className="text-[9px] bg-emerald-100 text-emerald-900 font-black px-1.5 py-0.2 rounded">
-                Publik
-              </span>
-            </button>
-          )}
-
-          {onOpenHakAkses && (
-            <button
-              onClick={() => {
-                playTapSound();
-                onOpenHakAkses();
-                if (window.innerWidth < 1024) onClose();
-              }}
-              className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-xs font-bold transition-all cursor-pointer shadow-2xs"
-            >
-              <div className="flex items-center gap-2">
-                <KeyRound className="w-4 h-4 text-amber-700" />
-                <span>Pengaturan Hak Akses Login</span>
-              </div>
-              <span className="text-[9px] bg-amber-200 text-amber-950 font-black px-1.5 py-0.2 rounded">
-                RBAC
-              </span>
-            </button>
-          )}
-
           {onOpenLogin && (
             <button
               onClick={() => {
