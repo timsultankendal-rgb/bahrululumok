@@ -396,7 +396,6 @@ export default function App() {
         onNavigateToPortal={(tab, roleHint) => handleNavigateToPortal(tab, roleHint)}
         branding={branding}
         sambutanConfig={sambutanConfig}
-        onOpenEditSambutan={() => setIsEditSambutanOpen(true)}
         isLoggedIn={!!authSession}
         userRole={authSession?.role}
         userName={authSession?.user?.fullName}

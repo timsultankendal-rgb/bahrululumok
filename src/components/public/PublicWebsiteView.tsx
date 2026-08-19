@@ -36,7 +36,6 @@ import {
   Menu as MenuIcon,
   X,
   Volume2,
-  Edit2,
   Quote,
   User
 } from 'lucide-react';
@@ -51,7 +50,6 @@ interface PublicWebsiteViewProps {
   onNavigateToPortal: (menuId?: string, roleHint?: UserRole) => void;
   branding?: AppBrandingConfig;
   sambutanConfig?: SambutanKepalaConfig;
-  onOpenEditSambutan?: () => void;
   isLoggedIn?: boolean;
   userRole?: UserRole;
   userName?: string;
@@ -63,7 +61,6 @@ export const PublicWebsiteView: React.FC<PublicWebsiteViewProps> = ({
   onNavigateToPortal,
   branding = DEFAULT_BRANDING,
   sambutanConfig = DEFAULT_SAMBUTAN_CONFIG,
-  onOpenEditSambutan,
   isLoggedIn = false,
   userRole,
   userName,
@@ -594,20 +591,6 @@ export const PublicWebsiteView: React.FC<PublicWebsiteViewProps> = ({
                       </span>
                     </div>
                   </div>
-
-                  {/* Tombol Edit Sambutan & Kepala Madrasah */}
-                  {onOpenEditSambutan && (
-                    <button
-                      onClick={() => {
-                        playTapSound();
-                        onOpenEditSambutan();
-                      }}
-                      className="w-full py-2.5 px-4 rounded-xl bg-amber-400 hover:bg-amber-300 text-emerald-950 font-black text-xs shadow-xs flex items-center justify-center gap-2 cursor-pointer transition-all hover:scale-[1.02]"
-                    >
-                      <Edit2 className="w-3.5 h-3.5" />
-                      <span>Edit Sambutan & Kepala Madrasah</span>
-                    </button>
-                  )}
                 </div>
               </div>
             </div>
@@ -615,22 +598,10 @@ export const PublicWebsiteView: React.FC<PublicWebsiteViewProps> = ({
             {/* Teks Sambutan & Visi Misi Singkat */}
             <div className="lg:col-span-7 space-y-6">
               <div className="space-y-2">
-                <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
                   <span className="bg-emerald-100 text-emerald-800 font-black text-xs px-3 py-1 rounded-full uppercase tracking-wider">
                     Sambutan Kepala Madrasah
                   </span>
-                  {onOpenEditSambutan && (
-                    <button
-                      onClick={() => {
-                        playTapSound();
-                        onOpenEditSambutan();
-                      }}
-                      className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 hover:text-emerald-900 bg-emerald-50 hover:bg-emerald-100 px-3 py-1 rounded-full border border-emerald-200 cursor-pointer transition-all"
-                    >
-                      <Edit2 className="w-3 h-3" />
-                      <span>Edit Teks Sambutan</span>
-                    </button>
-                  )}
                 </div>
                 <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-snug">
                   {sambutanConfig.judulSambutan}
