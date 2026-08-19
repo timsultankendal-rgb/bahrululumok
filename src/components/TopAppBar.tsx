@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bell, Search, ShieldCheck, QrCode, Menu, LogIn, LogOut, ShieldAlert, KeyRound } from 'lucide-react';
+import { Bell, Search, ShieldCheck, QrCode, Menu, LogIn, LogOut, ShieldAlert, KeyRound, Globe, Home } from 'lucide-react';
 import { StudentProfile, TeacherProfile, UserRole, UserAccount } from '../types';
 import { playTapSound } from '../utils/audio';
 
@@ -15,6 +15,8 @@ interface TopAppBarProps {
   onChangeRole?: (role: UserRole) => void;
   onOpenLogin?: () => void;
   onOpenHakAkses?: () => void;
+  onNavigateToHome?: () => void;
+  onLogout?: () => void;
   currentUser?: UserAccount | null;
 }
 
@@ -29,6 +31,8 @@ export const TopAppBar: React.FC<TopAppBarProps> = ({
   onChangeRole,
   onOpenLogin,
   onOpenHakAkses,
+  onNavigateToHome,
+  onLogout,
   currentUser,
 }) => {
   const currentName = currentUser?.fullName || (activeRole === 'guru' ? teacher.name : activeRole === 'admin' ? 'Administrator Madrasah' : student.name);
@@ -113,6 +117,21 @@ export const TopAppBar: React.FC<TopAppBarProps> = ({
 
         {/* Action Buttons */}
         <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+          {/* Website Utama Button */}
+          {onNavigateToHome && (
+            <button
+              onClick={() => {
+                playTapSound();
+                onNavigateToHome();
+              }}
+              className="p-1.5 sm:px-2.5 sm:py-1.5 rounded-xl sm:rounded-2xl bg-white/20 hover:bg-white/30 text-white font-bold text-[10px] sm:text-xs flex items-center gap-1.5 shadow-xs transition-all cursor-pointer border border-white/25"
+              title="Kembali ke Website Utama (Beranda Publik)"
+            >
+              <Globe className="w-3.5 h-3.5 text-amber-300" />
+              <span className="hidden sm:inline">Website</span>
+            </button>
+          )}
+
           {/* Hak Akses Button (Super Admin / Kepala) */}
           {activeRole === 'admin' && onOpenHakAkses && (
             <button
@@ -136,9 +155,24 @@ export const TopAppBar: React.FC<TopAppBarProps> = ({
                 onOpenLogin();
               }}
               className="w-8 h-8 rounded-2xl bg-white/15 hover:bg-white/25 text-white flex items-center justify-center transition-colors border border-white/20 shadow-xs cursor-pointer"
-              title="Masuk / Ganti Akun Login"
+              title="Ganti Akun / Halaman Login"
             >
               <LogIn className="w-4 h-4 text-emerald-200" />
+            </button>
+          )}
+
+          {/* Logout Button */}
+          {onLogout && (
+            <button
+              onClick={() => {
+                playTapSound();
+                onLogout();
+              }}
+              className="p-1.5 sm:px-2.5 sm:py-1.5 rounded-xl sm:rounded-2xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 hover:text-white font-bold text-[10px] sm:text-xs flex items-center gap-1 shadow-xs transition-all cursor-pointer border border-rose-400/30"
+              title="Keluar / Logout dari Sistem"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span className="hidden md:inline">Keluar</span>
             </button>
           )}
 

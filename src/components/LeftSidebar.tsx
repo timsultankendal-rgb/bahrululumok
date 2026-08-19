@@ -28,7 +28,9 @@ import {
   QrCode,
   Settings,
   KeyRound,
-  LogIn
+  LogIn,
+  LogOut,
+  Globe
 } from 'lucide-react';
 import { TabType, UserRole } from '../types';
 import { playTapSound } from '../utils/audio';
@@ -47,6 +49,8 @@ interface LeftSidebarProps {
   onOpenBrandingSettings?: () => void;
   onOpenLogin?: () => void;
   onOpenHakAkses?: () => void;
+  onNavigateToHome?: () => void;
+  onLogout?: () => void;
 }
 
 interface MenuItemDef {
@@ -71,6 +75,8 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
   onOpenBrandingSettings,
   onOpenLogin,
   onOpenHakAkses,
+  onNavigateToHome,
+  onLogout,
 }) => {
   const [searchFilter, setSearchFilter] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<'Semua' | 'KBM & Santri' | 'Administrasi & Profil' | 'Informasi Lembaga'>('Semua');
@@ -623,6 +629,25 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
 
         {/* Quick Settings & Auth Action Buttons */}
         <div className="p-3 bg-slate-50/90 border-t border-slate-200/90 space-y-1.5 shrink-0">
+          {onNavigateToHome && (
+            <button
+              onClick={() => {
+                playTapSound();
+                onNavigateToHome();
+                if (window.innerWidth < 1024) onClose();
+              }}
+              className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 text-xs font-bold transition-all cursor-pointer shadow-2xs"
+            >
+              <div className="flex items-center gap-2">
+                <Globe className="w-4 h-4 text-emerald-700" />
+                <span>Website Utama (Beranda)</span>
+              </div>
+              <span className="text-[9px] bg-emerald-100 text-emerald-900 font-black px-1.5 py-0.2 rounded">
+                Publik
+              </span>
+            </button>
+          )}
+
           {onOpenHakAkses && (
             <button
               onClick={() => {
@@ -655,11 +680,25 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
               <span>Halaman Login / Ganti Akun</span>
             </button>
           )}
+
+          {onLogout && (
+            <button
+              onClick={() => {
+                playTapSound();
+                onLogout();
+                if (window.innerWidth < 1024) onClose();
+              }}
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold transition-all cursor-pointer shadow-2xs"
+            >
+              <LogOut className="w-4 h-4" />
+              <span>Keluar / Logout Akun</span>
+            </button>
+          )}
         </div>
 
         {/* Footer Info */}
         <div className="p-2.5 bg-slate-100 border-t border-slate-200/80 text-[10px] text-slate-400 font-medium text-center shrink-0">
-          <span className="text-emerald-800 font-bold">Madrasah Diniyah Al-Ikhlas</span> • E-Sistem V.2.5
+          <span className="text-emerald-800 font-bold">{branding.appName || branding.institutionName || 'MDTW Bahrul Ulum'}</span> • E-Sistem V.2.5
         </div>
       </aside>
     </>

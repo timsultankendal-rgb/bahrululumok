@@ -24,7 +24,6 @@ import { UserRole, AuthSession, UserAccount } from '../../types';
 import { AppBrandingConfig, DEFAULT_BRANDING } from '../modals/AppBrandingModal';
 import { 
   authenticateUser, 
-  quickLoginByRole, 
   getLocalUserAccounts 
 } from '../../services/authService';
 import { playTapSound } from '../../utils/audio';
@@ -62,8 +61,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({
       icon: GraduationCap,
       placeholderUser: 'Masukkan No Induk / NISN (cth: 2024001)',
       hint: 'Gunakan NIS/NISN atau username santri',
-      defaultUsername: 'santri_ahmad',
-      defaultPass: 'santri123',
       color: 'from-emerald-600 to-teal-700',
       badge: 'Santri Digital',
     },
@@ -73,8 +70,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({
       icon: Users,
       placeholderUser: 'Masukkan NIP / NIY (cth: 1985071201)',
       hint: 'Gunakan NIP/NIY atau username ustadz/ustadzah',
-      defaultUsername: 'guru_fauzi',
-      defaultPass: 'guru123',
       color: 'from-teal-700 to-emerald-800',
       badge: 'Pendidik KBM',
     },
@@ -84,8 +79,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({
       icon: UserCheck,
       placeholderUser: 'Masukkan No WhatsApp (cth: 081234567890)',
       hint: 'Gunakan No WA terdaftar atau username wali',
-      defaultUsername: 'wali_ahmad',
-      defaultPass: 'wali123',
       color: 'from-blue-700 to-indigo-800',
       badge: 'Orang Tua / Wali',
     },
@@ -95,8 +88,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({
       icon: Crown,
       placeholderUser: 'Username Admin (cth: admin)',
       hint: 'Akses penuh TU & Pengaturan Hak Akses',
-      defaultUsername: 'admin',
-      defaultPass: 'admin123',
       color: 'from-rose-700 to-amber-800',
       badge: 'Super Admin TU',
     },
@@ -109,11 +100,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     setSelectedRole(role);
     setErrorMessage(null);
     setSuccessMessage(null);
-    const targetConfig = roleConfigs.find((r) => r.id === role);
-    if (targetConfig) {
-      setUsernameInput(targetConfig.defaultUsername);
-      setPasswordInput(targetConfig.defaultPass);
-    }
   };
 
   const handleFormSubmit = (e: React.FormEvent) => {
@@ -147,22 +133,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({
         setErrorMessage(result.message);
       }
     }, 450);
-  };
-
-  const handleQuickDemoLogin = (role: UserRole) => {
-    playTapSound();
-    setIsLoading(true);
-    setErrorMessage(null);
-
-    setTimeout(() => {
-      const session = quickLoginByRole(role);
-      setIsLoading(false);
-      setSuccessMessage(`Login Cepat Berhasil sebagai ${role.toUpperCase()}!`);
-      setTimeout(() => {
-        onLoginSuccess(session);
-        if (onClose) onClose();
-      }, 500);
-    }, 400);
   };
 
   return (
@@ -355,68 +325,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({
               )}
             </button>
           </form>
-
-          {/* Quick 1-Click Demo Login Bar */}
-          <div className="pt-3 border-t border-slate-200">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                ⚡ Login Cepat (1-Klik Uji Coba):
-              </span>
-              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                Demo Multi-Role
-              </span>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => handleQuickDemoLogin('admin')}
-                className="p-2 rounded-xl bg-slate-100 hover:bg-rose-50 hover:border-rose-300 border border-slate-200 text-left transition-all text-xs cursor-pointer flex items-center gap-2"
-              >
-                <Crown className="w-4 h-4 text-rose-600 shrink-0" />
-                <div className="min-w-0">
-                  <div className="font-bold text-slate-800 truncate">Admin / Kepala</div>
-                  <div className="text-[10px] text-slate-400 truncate">Hak Akses Penuh</div>
-                </div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleQuickDemoLogin('guru')}
-                className="p-2 rounded-xl bg-slate-100 hover:bg-teal-50 hover:border-teal-300 border border-slate-200 text-left transition-all text-xs cursor-pointer flex items-center gap-2"
-              >
-                <Users className="w-4 h-4 text-teal-600 shrink-0" />
-                <div className="min-w-0">
-                  <div className="font-bold text-slate-800 truncate">Dewan Asatidz</div>
-                  <div className="text-[10px] text-slate-400 truncate">Input Nilai & Presensi</div>
-                </div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleQuickDemoLogin('wali')}
-                className="p-2 rounded-xl bg-slate-100 hover:bg-blue-50 hover:border-blue-300 border border-slate-200 text-left transition-all text-xs cursor-pointer flex items-center gap-2"
-              >
-                <UserCheck className="w-4 h-4 text-blue-600 shrink-0" />
-                <div className="min-w-0">
-                  <div className="font-bold text-slate-800 truncate">Wali Santri</div>
-                  <div className="text-[10px] text-slate-400 truncate">Pantau Raport & SPP</div>
-                </div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleQuickDemoLogin('santri')}
-                className="p-2 rounded-xl bg-slate-100 hover:bg-emerald-50 hover:border-emerald-300 border border-slate-200 text-left transition-all text-xs cursor-pointer flex items-center gap-2"
-              >
-                <GraduationCap className="w-4 h-4 text-emerald-600 shrink-0" />
-                <div className="min-w-0">
-                  <div className="font-bold text-slate-800 truncate">Santri Murid</div>
-                  <div className="text-[10px] text-slate-400 truncate">CBT, Tugas & KBM</div>
-                </div>
-              </button>
-            </div>
-          </div>
         </div>
 
         {/* Footer Security Note */}

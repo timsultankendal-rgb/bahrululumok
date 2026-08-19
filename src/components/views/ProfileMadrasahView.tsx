@@ -18,9 +18,12 @@ import {
   Check,
   Printer,
   Settings,
-  Image as ImageIcon
+  Image as ImageIcon,
+  User,
+  Quote
 } from 'lucide-react';
 import { PROFILE_MADRASAH_DATA } from '../../data/madrasahCompleteData';
+import { SambutanKepalaConfig, DEFAULT_SAMBUTAN_CONFIG } from '../modals/EditSambutanModal';
 import { playTapSound } from '../../utils/audio';
 import { 
   saveMenuRecordToFirestore, 
@@ -34,12 +37,16 @@ const STORAGE_KEY_PROFILE = 'madrasah_profile_data_v2';
 
 interface ProfileMadrasahViewProps {
   onOpenBrandingSettings?: () => void;
+  sambutanConfig?: SambutanKepalaConfig;
+  onOpenEditSambutan?: () => void;
   activeRole?: UserRole;
   canEdit?: boolean;
 }
 
 export const ProfileMadrasahView: React.FC<ProfileMadrasahViewProps> = ({
   onOpenBrandingSettings,
+  sambutanConfig = DEFAULT_SAMBUTAN_CONFIG,
+  onOpenEditSambutan,
   activeRole,
   canEdit: explicitCanEdit,
 }) => {
@@ -167,6 +174,20 @@ export const ProfileMadrasahView: React.FC<ProfileMadrasahViewProps> = ({
               </button>
             )}
 
+            {canEdit && onOpenEditSambutan && (
+              <button
+                onClick={() => {
+                  playTapSound();
+                  onOpenEditSambutan();
+                }}
+                className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-1.5 rounded-2xl text-xs font-black shadow-xs transition-all cursor-pointer"
+                title="Edit Sambutan, Foto & Biodata Kepala Madrasah"
+              >
+                <User className="w-3.5 h-3.5 text-amber-300" />
+                <span>Edit Sambutan & Kepala</span>
+              </button>
+            )}
+
             {canManage && onOpenBrandingSettings && (
               <button
                 onClick={() => {
@@ -265,6 +286,77 @@ export const ProfileMadrasahView: React.FC<ProfileMadrasahViewProps> = ({
         <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80 text-xs space-y-1.5">
           <span className="text-[10px] font-bold text-slate-400 uppercase block">Alamat Kampus:</span>
           <p className="font-semibold text-slate-800">{profileData.alamat}</p>
+        </div>
+      </div>
+
+      {/* Kepala Madrasah & Sambutan Resmi Lembaga */}
+      <div className="bg-white rounded-3xl border border-slate-200 shadow-xs p-4 sm:p-5 space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 text-emerald-800">
+            <User className="w-5 h-5" />
+            <h3 className="text-sm sm:text-base font-extrabold text-slate-800">
+              Profil & Sambutan Kepala Madrasah
+            </h3>
+          </div>
+
+          {canEdit && onOpenEditSambutan && (
+            <button
+              onClick={() => {
+                playTapSound();
+                onOpenEditSambutan();
+              }}
+              className="flex items-center gap-1.5 bg-amber-400 hover:bg-amber-300 text-emerald-950 px-3 py-1.5 rounded-xl text-xs font-black shadow-2xs transition-all cursor-pointer"
+            >
+              <Edit2 className="w-3.5 h-3.5" />
+              <span>Edit Sambutan & Foto</span>
+            </button>
+          )}
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-4 items-start bg-slate-50 p-4 rounded-2xl border border-slate-200/80">
+          <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden bg-slate-200 border-2 border-emerald-600 shrink-0 shadow-sm">
+            <img
+              src={sambutanConfig.fotoUrl || DEFAULT_SAMBUTAN_CONFIG.fotoUrl}
+              alt={sambutanConfig.namaKepala}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = DEFAULT_SAMBUTAN_CONFIG.fotoUrl;
+              }}
+            />
+          </div>
+
+          <div className="space-y-1.5 flex-1 text-xs">
+            <div>
+              <span className="text-[10px] font-black uppercase text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md">
+                Pimpinan Madrasah
+              </span>
+              <h4 className="font-black text-sm sm:text-base text-slate-900 mt-1">
+                {sambutanConfig.namaKepala}
+              </h4>
+              <p className="text-xs text-emerald-800 font-semibold">{sambutanConfig.gelarJabatan}</p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-slate-200 text-[11px] text-slate-600">
+              <p>🎓 Alumni: <strong className="text-slate-800">{sambutanConfig.alumni}</strong></p>
+              <p>📜 Izin: <strong className="text-slate-800">{sambutanConfig.izinOperasional}</strong></p>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-2 text-xs">
+          <div className="flex items-center gap-2">
+            <span className="font-extrabold text-slate-700">Judul Sambutan:</span>
+            <strong className="text-emerald-900 font-black">"{sambutanConfig.judulSambutan}"</strong>
+          </div>
+          <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 text-slate-600 leading-relaxed whitespace-pre-line text-[11px] max-h-40 overflow-y-auto">
+            {sambutanConfig.isiSambutan}
+          </div>
+          {sambutanConfig.pesanKutipan && (
+            <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200/80 text-amber-900 text-[11px] italic font-medium flex items-center gap-2">
+              <Quote className="w-4 h-4 text-amber-600 shrink-0" />
+              <span>"{sambutanConfig.pesanKutipan}"</span>
+            </div>
+          )}
         </div>
       </div>
 

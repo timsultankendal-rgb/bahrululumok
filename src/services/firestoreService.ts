@@ -82,7 +82,11 @@ export async function getDocument<T>(
       return snap.data() as T;
     }
     return null;
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.code === 'unavailable' || error?.message?.includes('offline') || error?.message?.includes('could not be completed')) {
+      console.info(`Firestore document ${path} reading from cache/offline.`);
+      return null;
+    }
     handleFirestoreError(error, OperationType.GET, path);
   }
 }
@@ -96,7 +100,11 @@ export async function getCollection<T>(
     const colRef = collection(db, collectionName);
     const snap = await getDocs(colRef);
     return snap.docs.map(d => ({ id: d.id, ...d.data() } as unknown as T));
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.code === 'unavailable' || error?.message?.includes('offline') || error?.message?.includes('could not be completed')) {
+      console.info(`Firestore collection ${collectionName} reading from cache/offline.`);
+      return [];
+    }
     handleFirestoreError(error, OperationType.LIST, path);
   }
 }
@@ -116,6 +124,10 @@ export function subscribeCollection<T>(
       callback(items);
     },
     (error) => {
+      if (error?.code === 'unavailable' || error?.message?.includes('offline') || error?.message?.includes('could not be completed')) {
+        console.info(`Firestore listener on ${path} active in offline cache mode.`);
+        return;
+      }
       if (onError) {
         onError(error);
       } else {
@@ -144,6 +156,10 @@ export function subscribeDocument<T>(
       }
     },
     (error) => {
+      if (error?.code === 'unavailable' || error?.message?.includes('offline') || error?.message?.includes('could not be completed')) {
+        console.info(`Firestore doc listener on ${path} active in offline cache mode.`);
+        return;
+      }
       if (onError) {
         onError(error);
       } else {

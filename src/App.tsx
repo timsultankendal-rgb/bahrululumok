@@ -20,7 +20,14 @@ import {
   BerandaConfig,
   DEFAULT_BERANDA_CONFIG
 } from './components/modals/EditBerandaModal';
+import {
+  EditSambutanModal,
+  SambutanKepalaConfig,
+  DEFAULT_SAMBUTAN_CONFIG
+} from './components/modals/EditSambutanModal';
 import { LoginPage } from './components/auth/LoginPage';
+import { LoginPageView } from './components/auth/LoginPageView';
+import { PublicWebsiteView } from './components/public/PublicWebsiteView';
 import { HakAksesSettingsModal } from './components/modals/HakAksesSettingsModal';
 import { 
   getSavedAuthSession, 
@@ -81,8 +88,29 @@ import {
 
 const STORAGE_KEY_BRANDING = 'madrasah_app_branding_v2';
 const STORAGE_KEY_BERANDA = 'madrasah_beranda_config_v2';
+const STORAGE_KEY_SAMBUTAN = 'madrasah_sambutan_data_v2';
+
+export type AppRoute = 'website' | 'login' | 'portal';
+
+function detectCurrentRoute(): AppRoute {
+  if (typeof window === 'undefined') return 'website';
+  const path = window.location.pathname.toLowerCase();
+  const hash = window.location.hash.toLowerCase();
+  const search = window.location.search.toLowerCase();
+
+  if (path.includes('/login') || hash.includes('/login') || hash.includes('login') || search.includes('page=login')) {
+    return 'login';
+  }
+  if (path.includes('/portal') || path.includes('/dashboard') || path.includes('/app') || hash.includes('/portal') || hash.includes('portal') || search.includes('page=portal')) {
+    return 'portal';
+  }
+  return 'website';
+}
 
 export default function App() {
+  // Application Primary View Route ('website' = Landing Page, 'login' = Dedicated Login, 'portal' = 18-Menu App)
+  const [appRoute, setAppRoute] = useState<AppRoute>(() => detectCurrentRoute());
+
   // Navigation & Role State (Defaults to 'home' or Menu 1)
   const [activeTab, setActiveTab] = useState<TabType>('home');
   const [activeRole, setActiveRole] = useState<UserRole>('santri');
@@ -110,6 +138,17 @@ export default function App() {
     return DEFAULT_BERANDA_CONFIG;
   });
 
+  // Sambutan & Kepala Madrasah Config State
+  const [sambutanConfig, setSambutanConfig] = useState<SambutanKepalaConfig>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_SAMBUTAN);
+      if (saved) return JSON.parse(saved);
+    } catch {
+      // fallback
+    }
+    return DEFAULT_SAMBUTAN_CONFIG;
+  });
+
   // Core Data State
   const [student, setStudent] = useState<StudentProfile>(INITIAL_STUDENT);
   const [teacher, setTeacher] = useState<TeacherProfile>(INITIAL_TEACHER);
@@ -127,12 +166,93 @@ export default function App() {
   const [isIdCardOpen, setIsIdCardOpen] = useState<boolean>(false);
   const [isBrandingModalOpen, setIsBrandingModalOpen] = useState<boolean>(false);
   const [isEditBerandaOpen, setIsEditBerandaOpen] = useState<boolean>(false);
+  const [isEditSambutanOpen, setIsEditSambutanOpen] = useState<boolean>(false);
   const [selectedPengumuman, setSelectedPengumuman] = useState<PengumumanItem | null>(null);
 
   // Auth & RBAC State
   const [authSession, setAuthSession] = useState(() => getSavedAuthSession());
   const [isLoginOpen, setIsLoginOpen] = useState<boolean>(false);
   const [isHakAksesOpen, setIsHakAksesOpen] = useState<boolean>(false);
+  const [loginNotice, setLoginNotice] = useState<string | undefined>();
+  const [pendingTargetTab, setPendingTargetTab] = useState<TabType | undefined>();
+  const [loginInitialRole, setLoginInitialRole] = useState<UserRole | undefined>();
+
+  // Sync route with browser back/forward and hash changes
+  useEffect(() => {
+    const handleLocationChange = () => {
+      const detected = detectCurrentRoute();
+      setAppRoute(detected);
+    };
+
+    window.addEventListener('popstate', handleLocationChange);
+    window.addEventListener('hashchange', handleLocationChange);
+
+    return () => {
+      window.removeEventListener('popstate', handleLocationChange);
+      window.removeEventListener('hashchange', handleLocationChange);
+    };
+  }, []);
+
+  const navigateTo = (route: AppRoute, targetTab?: TabType) => {
+    playTapSound();
+    setAppRoute(route);
+    if (targetTab) {
+      setActiveTab(targetTab);
+    }
+    const urlMap: Record<AppRoute, string> = {
+      website: '/',
+      login: '/login',
+      portal: '/portal',
+    };
+    try {
+      window.history.pushState({ route, tab: targetTab }, '', urlMap[route]);
+    } catch {
+      // safe fallback for restricted sandbox
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Dedicated handlers for protected navigation
+  const handleNavigateToLogin = (role?: UserRole, targetTab?: string, notice?: string) => {
+    if (role) {
+      setLoginInitialRole(role);
+    }
+    if (targetTab) {
+      setPendingTargetTab(targetTab as TabType);
+    }
+    if (notice) {
+      setLoginNotice(notice);
+    } else {
+      setLoginNotice(undefined);
+    }
+    navigateTo('login');
+  };
+
+  const handleNavigateToPortal = (targetTab?: string, roleHint?: UserRole) => {
+    if (roleHint) {
+      setLoginInitialRole(roleHint);
+    }
+    if (!authSession) {
+      setPendingTargetTab(targetTab ? (targetTab as TabType) : 'home');
+      setLoginNotice(
+        targetTab
+          ? '🔒 Modul ini memerlukan otentikasi login. Silakan masuk terlebih dahulu untuk mengakses sistem.'
+          : '🔒 Akses Dashboard & 18 Modul terproteksi. Silakan login terlebih dahulu.'
+      );
+      navigateTo('login');
+      return;
+    }
+    // User is logged in, navigate safely to portal
+    navigateTo('portal', targetTab ? (targetTab as TabType) : undefined);
+  };
+
+  const handleLogout = () => {
+    saveAuthSession(null);
+    setAuthSession(null);
+    setLoginNotice(undefined);
+    setPendingTargetTab(undefined);
+    navigateTo('website');
+  };
 
   // Sync role when session changes
   useEffect(() => {
@@ -145,7 +265,12 @@ export default function App() {
     if (!session) return;
     setAuthSession(session);
     setActiveRole(session.role);
+    saveAuthSession(session);
     setIsLoginOpen(false);
+    setLoginNotice(undefined);
+    const target = pendingTargetTab || 'home';
+    setPendingTargetTab(undefined);
+    navigateTo('portal', target);
   };
 
   // Subscribe to Cloud Firestore for App Branding
@@ -188,6 +313,26 @@ export default function App() {
     };
   }, []);
 
+  // Subscribe to Cloud Firestore for Sambutan & Profil Kepala Madrasah
+  useEffect(() => {
+    let isMounted = true;
+    const unsub = subscribeMenuRecords<SambutanKepalaConfig>('sambutan_kepala', (records) => {
+      if (!isMounted) return;
+      if (records && records.length > 0 && records[0].payload) {
+        const payload = records[0].payload;
+        setSambutanConfig(payload);
+        localStorage.setItem(STORAGE_KEY_SAMBUTAN, JSON.stringify(payload));
+      } else {
+        saveMenuRecordToFirestore('sambutan_kepala', 'main', 'Sambutan Kepala Madrasah', DEFAULT_SAMBUTAN_CONFIG);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+      unsub();
+    };
+  }, []);
+
   const handleSaveBranding = async (newBranding: AppBrandingConfig) => {
     setBranding(newBranding);
     localStorage.setItem(STORAGE_KEY_BRANDING, JSON.stringify(newBranding));
@@ -203,6 +348,16 @@ export default function App() {
     localStorage.setItem(STORAGE_KEY_BERANDA, JSON.stringify(newConfig));
     try {
       await saveMenuRecordToFirestore('beranda_config', 'main', 'Konfigurasi Beranda', newConfig);
+    } catch (err) {
+      console.warn('Firestore fallback', err);
+    }
+  };
+
+  const handleSaveSambutanConfig = async (newConfig: SambutanKepalaConfig) => {
+    setSambutanConfig(newConfig);
+    localStorage.setItem(STORAGE_KEY_SAMBUTAN, JSON.stringify(newConfig));
+    try {
+      await saveMenuRecordToFirestore('sambutan_kepala', 'main', 'Sambutan Kepala Madrasah', newConfig);
     } catch (err) {
       console.warn('Firestore fallback', err);
     }
@@ -233,6 +388,52 @@ export default function App() {
     setPresensiHariIni(record);
   };
 
+  // If user is visiting the Public Website (Landing Page)
+  if (appRoute === 'website') {
+    return (
+      <PublicWebsiteView
+        onNavigateToLogin={(role, tab, notice) => handleNavigateToLogin(role, tab, notice)}
+        onNavigateToPortal={(tab, roleHint) => handleNavigateToPortal(tab, roleHint)}
+        branding={branding}
+        sambutanConfig={sambutanConfig}
+        onOpenEditSambutan={() => setIsEditSambutanOpen(true)}
+        isLoggedIn={!!authSession}
+        userRole={authSession?.role}
+        userName={authSession?.user?.fullName}
+        onLogout={handleLogout}
+      />
+    );
+  }
+
+  // If user is visiting the Dedicated Standalone Login Page
+  if (appRoute === 'login') {
+    return (
+      <LoginPageView
+        onLoginSuccess={(session) => handleLoginSuccess(session)}
+        onNavigateToHome={() => navigateTo('website')}
+        onNavigateToPortal={() => handleNavigateToPortal()}
+        branding={branding}
+        initialRole={loginInitialRole || activeRole}
+        loginNotice={loginNotice}
+      />
+    );
+  }
+
+  // If user tries to open Portal directly without authentication
+  if (!authSession) {
+    return (
+      <LoginPageView
+        onLoginSuccess={(session) => handleLoginSuccess(session)}
+        onNavigateToHome={() => navigateTo('website')}
+        onNavigateToPortal={() => handleNavigateToPortal()}
+        branding={branding}
+        initialRole={loginInitialRole || activeRole}
+        loginNotice={loginNotice || '🔒 Anda harus login terlebih dahulu untuk mengakses Dashboard & 18 Modul Sistem MDTW Bahrul Ulum.'}
+      />
+    );
+  }
+
+  // Otherwise, render the 18-Menu Internal Portal System
   return (
     <AndroidFrame
       activeRole={activeRole}
@@ -254,8 +455,10 @@ export default function App() {
         onOpenIdCard={() => setIsIdCardOpen(true)}
         branding={branding}
         onOpenBrandingSettings={() => setIsBrandingModalOpen(true)}
-        onOpenLogin={() => setIsLoginOpen(true)}
+        onOpenLogin={() => handleNavigateToLogin()}
         onOpenHakAkses={() => setIsHakAksesOpen(true)}
+        onNavigateToHome={() => navigateTo('website')}
+        onLogout={handleLogout}
       />
 
       {/* Main Content Area */}
@@ -270,8 +473,10 @@ export default function App() {
           onOpenIdCard={() => setIsIdCardOpen(true)}
           onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
           onChangeRole={setActiveRole}
-          onOpenLogin={() => setIsLoginOpen(true)}
+          onOpenLogin={() => handleNavigateToLogin()}
           onOpenHakAkses={() => setIsHakAksesOpen(true)}
+          onNavigateToHome={() => navigateTo('website')}
+          onLogout={handleLogout}
           currentUser={authSession?.user}
         />
 
@@ -359,7 +564,12 @@ export default function App() {
               {activeTab === '5_raport' && <RaportView />}
               {activeTab === '6_jadwal_seragam_mapel' && <JadwalSeragamMapelView />}
               {activeTab === '7_profile_madrasah' && (
-                <ProfileMadrasahView activeRole={activeRole} onOpenBrandingSettings={() => setIsBrandingModalOpen(true)} />
+                <ProfileMadrasahView
+                  activeRole={activeRole}
+                  onOpenBrandingSettings={() => setIsBrandingModalOpen(true)}
+                  sambutanConfig={sambutanConfig}
+                  onOpenEditSambutan={() => setIsEditSambutanOpen(true)}
+                />
               )}
               {activeTab === '8_catatan_kegiatan' && <CatatanKegiatanView />}
               {activeTab === '9_visi_misi' && <VisiMisiView />}
@@ -399,6 +609,14 @@ export default function App() {
         onClose={() => setIsEditBerandaOpen(false)}
         config={berandaConfig}
         onSave={handleSaveBerandaConfig}
+      />
+
+      {/* Edit Sambutan & Biodata Kepala Madrasah Modal */}
+      <EditSambutanModal
+        isOpen={isEditSambutanOpen}
+        onClose={() => setIsEditSambutanOpen(false)}
+        config={sambutanConfig}
+        onSave={handleSaveSambutanConfig}
       />
 
       {/* Login Page Modal */}
