@@ -19,7 +19,10 @@ import {
   MapPin,
   Compass,
   ArrowUpRight,
-  Edit3
+  Edit3,
+  UserCheck,
+  MessageSquare,
+  UserPlus
 } from 'lucide-react';
 import { 
   StudentProfile, 
@@ -57,6 +60,9 @@ interface HomeTabProps {
   onOpenDoa: () => void;
   onOpenTasbih: () => void;
   onOpenRaport: () => void;
+  onOpenBiodata?: () => void;
+  onOpenKopas?: () => void;
+  onOpenPSB?: () => void;
   onOpenPengumumanDetail: (item: PengumumanItem) => void;
   presensiHariIni: PresensiRecord | null;
   berandaConfig?: BerandaConfig;
@@ -85,6 +91,9 @@ export const HomeTab: React.FC<HomeTabProps> = ({
   onOpenDoa,
   onOpenTasbih,
   onOpenRaport,
+  onOpenBiodata,
+  onOpenKopas,
+  onOpenPSB,
   onOpenPengumumanDetail,
   presensiHariIni,
   berandaConfig = DEFAULT_BERANDA_CONFIG,
@@ -129,22 +138,36 @@ export const HomeTab: React.FC<HomeTabProps> = ({
       action: onOpenPresensi,
     },
     {
-      id: 'feat-cbt',
-      title: 'Ujian CBT',
-      subtitle: 'PTS Online',
-      icon: Award,
-      badge: 'Aktif',
+      id: 'feat-biodata',
+      title: 'Biodata',
+      subtitle: 'Data Santri & Guru',
+      icon: UserCheck,
+      badge: 'Profil',
       badgeColor: 'bg-amber-500',
       bgColor: 'from-amber-600 to-orange-700',
-      action: onOpenCBT,
+      action: () => {
+        if (onOpenBiodata) {
+          onOpenBiodata();
+        } else {
+          onOpenPresensi();
+        }
+      },
     },
     {
-      id: 'feat-tahfidz',
-      title: 'Tahfidz Qur\'an',
-      subtitle: `${student.tahfidzProgress.juzMemorized} / ${student.tahfidzProgress.targetJuz} Juz`,
-      icon: BookOpen,
+      id: 'feat-kopas',
+      title: 'Kopas',
+      subtitle: 'Buku Penghubung',
+      icon: MessageSquare,
+      badge: 'Wali',
+      badgeColor: 'bg-teal-600',
       bgColor: 'from-teal-600 to-emerald-800',
-      action: onOpenSetoranTahfidz,
+      action: () => {
+        if (onOpenKopas) {
+          onOpenKopas();
+        } else {
+          onOpenTanyaUstadz();
+        }
+      },
     },
     {
       id: 'feat-spp',
@@ -175,20 +198,30 @@ export const HomeTab: React.FC<HomeTabProps> = ({
       action: onOpenRaport,
     },
     {
-      id: 'feat-tasbih',
-      title: 'Tasbih Digital',
-      subtitle: 'Dzikir Harian',
-      icon: Sparkles,
-      bgColor: 'from-emerald-700 to-teal-900',
-      action: onOpenTasbih,
+      id: 'feat-jadwal',
+      title: 'Jadwal',
+      subtitle: 'Seragam & Mapel',
+      icon: Calendar,
+      badge: 'KBM',
+      badgeColor: 'bg-indigo-500',
+      bgColor: 'from-indigo-600 to-purple-800',
+      action: onOpenJadwal,
     },
     {
-      id: 'feat-doa',
-      title: 'Doa Harian',
-      subtitle: 'Hadits Pilihan',
-      icon: BookMarked,
-      bgColor: 'from-amber-700 to-yellow-800',
-      action: onOpenDoa,
+      id: 'feat-psb',
+      title: 'PSB / PPDB',
+      subtitle: 'Syarat Daftar',
+      icon: UserPlus,
+      badge: 'Baru',
+      badgeColor: 'bg-rose-500',
+      bgColor: 'from-rose-600 to-pink-700',
+      action: () => {
+        if (onOpenPSB) {
+          onOpenPSB();
+        } else {
+          onOpenRaport();
+        }
+      },
     },
   ];
 

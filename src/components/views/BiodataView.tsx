@@ -655,24 +655,30 @@ export const BiodataView: React.FC<BiodataViewProps> = ({
         {activeTab === 'murid' && (
           <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100">
             {/* Filter Kelas */}
-            <div className="flex items-center gap-1 overflow-x-auto pb-1 sm:pb-0 hide-scrollbar">
-              <span className="text-[11px] font-bold text-slate-400 mr-1">Kelas:</span>
-              {['Semua', 'Kelas 1', 'Kelas 2', 'Kelas 3', 'Kelas 4', 'Kelas 5', 'Kelas 6'].map((k) => (
-                <button
-                  key={k}
-                  onClick={() => {
-                    playTapSound();
-                    setSelectedKelas(k);
-                  }}
-                  className={`px-2.5 py-1 rounded-lg font-bold text-xs shrink-0 transition-all cursor-pointer ${
-                    selectedKelas === k
-                      ? 'bg-emerald-700 text-white shadow-2xs'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                  }`}
-                >
-                  {k}
-                </button>
-              ))}
+            <div className="w-full sm:w-auto">
+              <div className="flex items-center gap-1 mb-1 sm:hidden">
+                <span className="text-[11px] font-bold text-slate-500">Filter Kelas:</span>
+                <span className="text-[10px] text-emerald-800 font-bold bg-emerald-100 px-2 py-0.5 rounded-md">{selectedKelas}</span>
+              </div>
+              <div className="grid grid-cols-4 sm:flex sm:flex-wrap gap-1.5 w-full">
+                <span className="hidden sm:inline-flex items-center text-[11px] font-bold text-slate-400 mr-1">Kelas:</span>
+                {['Semua', 'Kelas 1', 'Kelas 2', 'Kelas 3', 'Kelas 4', 'Kelas 5', 'Kelas 6'].map((k) => (
+                  <button
+                    key={k}
+                    onClick={() => {
+                      playTapSound();
+                      setSelectedKelas(k);
+                    }}
+                    className={`px-2.5 py-1.5 rounded-xl font-bold text-xs text-center transition-all cursor-pointer ${
+                      selectedKelas === k
+                        ? 'bg-emerald-700 text-white shadow-2xs font-black ring-2 ring-emerald-400/40'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    {k}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Filter Gender */}

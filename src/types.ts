@@ -194,6 +194,26 @@ export interface RaportSantri {
 }
 export type RaportSantriData = RaportSantri;
 
+export interface JadwalSeragamItem {
+  id?: string;
+  hari: string;
+  seragamSantri: string;
+  seragamGuru: string;
+  keterangan: string;
+  warnaBadge?: string;
+}
+
+export interface MapelKTSPItem {
+  id?: string;
+  kelas: string;
+  hari: string;
+  mapel: string;
+  kitabRujukan: string;
+  guruPengajar: string;
+  jam: string;
+  cawu?: string;
+}
+
 // 6. JADWAL SERAGAM & MAPEL KTSP+
 export interface JadwalSeragamMapel {
   hari: 'Senin' | 'Selasa' | 'Rabu' | 'Kamis' | 'Jum\'at' | 'Sabtu' | 'Ahad' | string;

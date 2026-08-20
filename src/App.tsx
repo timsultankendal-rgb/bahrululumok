@@ -610,6 +610,9 @@ export default function App() {
                   onOpenDoa={() => setIsTanyaUstadzOpen(true)}
                   onOpenTasbih={() => setIsTanyaUstadzOpen(true)}
                   onOpenRaport={() => setActiveTab('5_raport')}
+                  onOpenBiodata={() => setActiveTab('2_biodata')}
+                  onOpenKopas={() => setActiveTab('3_kopas')}
+                  onOpenPSB={() => setActiveTab('14_syarat_pendaftaran')}
                   onOpenPengumumanDetail={(item) => setSelectedPengumuman(item)}
                   presensiHariIni={presensiHariIni}
                   berandaConfig={berandaConfig}

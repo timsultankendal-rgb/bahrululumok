@@ -868,23 +868,25 @@ export const DaftarHadirView: React.FC<DaftarHadirViewProps> = ({
           <div className="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-xs flex flex-col gap-3">
             <div className="flex flex-wrap items-center justify-between gap-2.5">
               {/* Kelas Chips */}
-              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 hide-scrollbar">
-                {['Semua', 'Kelas 1', 'Kelas 2', 'Kelas 3', 'Kelas 4', 'Kelas 5', 'Kelas 6'].map((k) => (
-                  <button
-                    key={k}
-                    onClick={() => {
-                      playTapSound();
-                      setSelectedKelas(k);
-                    }}
-                    className={`px-3 py-1.5 rounded-xl font-bold text-xs shrink-0 transition-all cursor-pointer ${
-                      selectedKelas === k
-                        ? 'bg-emerald-600 text-white shadow-2xs'
-                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                    }`}
-                  >
-                    {k}
-                  </button>
-                ))}
+              <div className="w-full sm:w-auto">
+                <div className="grid grid-cols-4 sm:flex sm:flex-wrap gap-1.5 w-full">
+                  {['Semua', 'Kelas 1', 'Kelas 2', 'Kelas 3', 'Kelas 4', 'Kelas 5', 'Kelas 6'].map((k) => (
+                    <button
+                      key={k}
+                      onClick={() => {
+                        playTapSound();
+                        setSelectedKelas(k);
+                      }}
+                      className={`px-2.5 sm:px-3 py-1.5 rounded-xl font-bold text-xs text-center transition-all cursor-pointer ${
+                        selectedKelas === k
+                          ? 'bg-emerald-600 text-white shadow-2xs font-black ring-2 ring-emerald-400/40'
+                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      }`}
+                    >
+                      {k}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {/* Action Buttons: Tambah Santri & Set Semua Hadir */}

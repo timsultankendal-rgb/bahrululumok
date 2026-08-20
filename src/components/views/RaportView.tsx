@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   FileText, 
   Award, 
@@ -11,22 +11,116 @@ import {
   User, 
   Calendar,
   Sparkles,
-  ChevronDown
+  ChevronDown,
+  Edit2,
+  Save,
+  X,
+  Plus,
+  Check
 } from 'lucide-react';
 import { RAPORT_SANTRI_SAMPLE, BIODATA_MURID_LIST } from '../../data/madrasahCompleteData';
-import { RaportSantriData } from '../../types';
+import { RaportSantriData, UserRole } from '../../types';
 import { playTapSound } from '../../utils/audio';
+import { useAccessPermission } from '../../hooks/useAccessPermission';
 
-export const RaportView: React.FC = () => {
+const STORAGE_KEY_RAPORT = 'madrasah_raport_data_v2';
+
+interface RaportViewProps {
+  activeRole?: UserRole;
+  canEdit?: boolean;
+}
+
+export const RaportView: React.FC<RaportViewProps> = ({
+  activeRole,
+  canEdit: explicitCanEdit,
+}) => {
+  const { canEdit } = useAccessPermission('5_raport', activeRole, explicitCanEdit);
   const [selectedSantriId, setSelectedSantriId] = useState<string>('mrd-4');
   const [selectedCawu, setSelectedCawu] = useState<string>('Cawu 1');
-  const [raportData, setRaportData] = useState<RaportSantriData>(RAPORT_SANTRI_SAMPLE);
+  
+  const [raportData, setRaportData] = useState<RaportSantriData>(() => {
+    try {
+      const saved = localStorage.getItem(`${STORAGE_KEY_RAPORT}_${selectedSantriId}_${selectedCawu}`);
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return RAPORT_SANTRI_SAMPLE;
+  });
+
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [editForm, setEditForm] = useState<RaportSantriData>(raportData);
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 3000);
+  };
+
+  // Reload data when student or cawu changes
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(`${STORAGE_KEY_RAPORT}_${selectedSantriId}_${selectedCawu}`);
+      if (saved) {
+        setRaportData(JSON.parse(saved));
+        return;
+      }
+    } catch {}
+    setRaportData(RAPORT_SANTRI_SAMPLE);
+  }, [selectedSantriId, selectedCawu]);
 
   // Santri lookup
   const currentSantri = BIODATA_MURID_LIST.find((m) => m.id === selectedSantriId) || BIODATA_MURID_LIST[3];
 
+  const handleOpenEdit = () => {
+    playTapSound();
+    setEditForm(JSON.parse(JSON.stringify(raportData)));
+    setIsEditOpen(true);
+  };
+
+  const handleGradeChange = (index: number, newScore: number) => {
+    const updatedNilai = [...editForm.nilaiList];
+    const item = { ...updatedNilai[index] };
+    item.nilaiAngka = newScore;
+    
+    // Auto predikat
+    if (newScore >= 90) item.predikat = 'A (Mumtaz)';
+    else if (newScore >= 80) item.predikat = 'B (Jayyid Jiddan)';
+    else if (newScore >= 70) item.predikat = 'C (Jayyid)';
+    else item.predikat = 'D (Maqbul)';
+    
+    updatedNilai[index] = item;
+    
+    // Calculate new average
+    const total = updatedNilai.reduce((sum, n) => sum + (n.nilaiAngka || 0), 0);
+    const avg = Number((total / updatedNilai.length).toFixed(1));
+
+    setEditForm({
+      ...editForm,
+      nilaiList: updatedNilai,
+      rataRata: avg
+    });
+  };
+
+  const handleSaveEdit = (e: React.FormEvent) => {
+    e.preventDefault();
+    playTapSound();
+    setRaportData(editForm);
+    try {
+      localStorage.setItem(`${STORAGE_KEY_RAPORT}_${selectedSantriId}_${selectedCawu}`, JSON.stringify(editForm));
+    } catch {}
+    setIsEditOpen(false);
+    showToast('Data nilai raport santri berhasil disimpan!');
+  };
+
   return (
     <div className="p-3.5 sm:p-5 space-y-4 max-w-5xl mx-auto">
+      {/* Toast Notification */}
+      {toastMsg && (
+        <div className="fixed bottom-5 right-5 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-2xl text-xs font-bold shadow-2xl flex items-center gap-2 border border-emerald-500/50">
+          <Check className="w-4 h-4 text-emerald-400" />
+          <span>{toastMsg}</span>
+        </div>
+      )}
+
       {/* Header Banner */}
       <div className="bg-gradient-to-r from-emerald-800 via-teal-800 to-cyan-800 rounded-3xl p-4 sm:p-5 text-white shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
@@ -42,7 +136,17 @@ export const RaportView: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          {canEdit && (
+            <button
+              onClick={handleOpenEdit}
+              className="px-3.5 py-2 bg-amber-400 hover:bg-amber-300 text-emerald-950 rounded-2xl text-xs font-extrabold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs"
+            >
+              <Edit2 className="w-4 h-4" />
+              <span>Edit Nilai Raport</span>
+            </button>
+          )}
+
           <button
             onClick={() => {
               playTapSound();
@@ -77,7 +181,8 @@ export const RaportView: React.FC = () => {
           </select>
         </div>
 
-        <div className="flex items-center gap-1.5 w-full sm:w-auto overflow-x-auto hide-scrollbar">
+        {/* Responsive Cawu Buttons */}
+        <div className="grid grid-cols-3 sm:flex gap-1.5 w-full sm:w-auto">
           {['Cawu 1', 'Cawu 2', 'Cawu 3'].map((cw) => (
             <button
               key={cw}
@@ -85,7 +190,7 @@ export const RaportView: React.FC = () => {
                 playTapSound();
                 setSelectedCawu(cw);
               }}
-              className={`px-3.5 py-1.5 rounded-xl font-black text-xs shrink-0 transition-all cursor-pointer ${
+              className={`px-3.5 py-1.5 rounded-xl font-black text-xs text-center transition-all cursor-pointer ${
                 selectedCawu === cw
                   ? 'bg-emerald-600 text-white shadow-2xs'
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -137,7 +242,6 @@ export const RaportView: React.FC = () => {
       </div>
 
       {/* 11 MATA PELAJARAN DINIYAH TABLE */}
-      {/* (Fiqih, Tauhid, Ahlaq, Alquran / Tajwid, B. Arab, Nahwu-Sorof, Tarikh, Ke NU an, Hadist, Imlak/Pegon, Hafalan) */}
       <div className="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
         <div className="p-3.5 sm:p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -240,6 +344,137 @@ export const RaportView: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Modal Edit Raport */}
+      {isEditOpen && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-5 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <h3 className="font-black text-base text-slate-900 flex items-center gap-2">
+                  <Edit2 className="w-5 h-5 text-emerald-600" />
+                  Edit Nilai Raport - {currentSantri.nama}
+                </h3>
+                <p className="text-xs text-slate-500">{currentSantri.kelas} • {selectedCawu}</p>
+              </div>
+              <button
+                onClick={() => setIsEditOpen(false)}
+                className="p-1.5 rounded-full text-slate-400 hover:bg-slate-100"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEdit} className="space-y-4">
+              {/* Summary Stats Inputs */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-3 bg-slate-50 rounded-2xl border border-slate-200">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                    Peringkat Kelas:
+                  </label>
+                  <input
+                    type="number"
+                    value={editForm.peringkat}
+                    onChange={(e) => setEditForm({ ...editForm, peringkat: Number(e.target.value) })}
+                    className="w-full px-2.5 py-1.5 text-xs font-bold bg-white border border-slate-300 rounded-xl focus:outline-emerald-500"
+                    min="1"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                    Total Santri Kelas:
+                  </label>
+                  <input
+                    type="number"
+                    value={editForm.totalSiswa}
+                    onChange={(e) => setEditForm({ ...editForm, totalSiswa: Number(e.target.value) })}
+                    className="w-full px-2.5 py-1.5 text-xs font-bold bg-white border border-slate-300 rounded-xl focus:outline-emerald-500"
+                    min="1"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                    Rata-Rata Otomatis:
+                  </label>
+                  <div className="px-2.5 py-1.5 text-xs font-mono font-black bg-emerald-100 text-emerald-900 rounded-xl">
+                    {editForm.rataRata}
+                  </div>
+                </div>
+              </div>
+
+              {/* 11 Grades Inputs */}
+              <div className="space-y-2">
+                <span className="text-xs font-extrabold text-slate-800 block">
+                  Nilai 11 Mata Pelajaran:
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-60 overflow-y-auto pr-1">
+                  {editForm.nilaiList.map((item, idx) => (
+                    <div key={idx} className="flex items-center justify-between gap-2 p-2 bg-slate-50 rounded-xl border border-slate-200 text-xs">
+                      <span className="font-bold text-slate-700 truncate flex-1">{item.namaMapel}</span>
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={item.nilaiAngka}
+                        onChange={(e) => handleGradeChange(idx, Number(e.target.value))}
+                        className="w-16 px-2 py-1 text-center font-mono font-bold bg-white border border-slate-300 rounded-lg focus:outline-emerald-500"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Tahfidz & Catatan Guru */}
+              <div className="space-y-3 pt-2 border-t border-slate-100">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Capaian Hafalan Al-Qur'an:
+                  </label>
+                  <input
+                    type="text"
+                    value={editForm.hafalanJuz}
+                    onChange={(e) => setEditForm({ ...editForm, hafalanJuz: e.target.value })}
+                    className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:outline-emerald-500 font-semibold"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Catatan Wali Kelas & Pengasuh:
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={editForm.catatanGuru}
+                    onChange={(e) => setEditForm({ ...editForm, catatanGuru: e.target.value })}
+                    className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:outline-emerald-500 font-medium"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setIsEditOpen(false)}
+                  className="flex-1 py-2.5 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-2.5 rounded-xl text-xs font-extrabold text-white bg-emerald-600 hover:bg-emerald-700 shadow-xs flex items-center justify-center gap-1.5"
+                >
+                  <Save className="w-4 h-4" />
+                  <span>Simpan Raport</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
