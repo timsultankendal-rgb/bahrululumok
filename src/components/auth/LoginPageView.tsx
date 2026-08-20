@@ -82,7 +82,7 @@ export const LoginPageView: React.FC<LoginPageViewProps> = ({
       hint: 'Gunakan No WA terdaftar atau username wali',
       color: 'from-blue-800 via-indigo-900 to-slate-900',
       badge: 'Orang Tua / Wali',
-      desc: 'Pantau kehadiran putra-putri, capaian hafalan tahfidz, dan kartu syahriyah SPP.',
+      desc: 'Pantau kehadiran putra-putri, capaian hafalan tahfidz, dan kartu Syahriyah & ADM.',
     },
     {
       id: 'admin' as UserRole,

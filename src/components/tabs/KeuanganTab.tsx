@@ -93,7 +93,7 @@ export const KeuanganTab: React.FC<KeuanganTabProps> = ({
       {/* Keuangan Summary Card */}
       <div className="rounded-3xl bg-gradient-to-br from-emerald-600 via-teal-700 to-emerald-800 p-4 border border-emerald-500/40 shadow-md text-white relative overflow-hidden">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-xs text-emerald-100 font-medium">Portal Keuangan & Infaq</span>
+          <span className="text-xs text-emerald-100 font-medium">Portal Syahriyah & ADM</span>
           <span className="text-[10px] font-bold bg-white/20 text-white px-2.5 py-0.5 rounded-full backdrop-blur-xs">
             Kassier Digital MTs
           </span>
@@ -122,7 +122,7 @@ export const KeuanganTab: React.FC<KeuanganTabProps> = ({
       <div className="flex flex-col gap-2.5">
         <div className="flex items-center justify-between">
           <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-            Rincian Tagihan & SPP
+            Rincian Tagihan Syahriyah & ADM
           </span>
           <span className="text-xs text-slate-500 font-medium">{tagihanList.length} Tagihan Terdata</span>
         </div>

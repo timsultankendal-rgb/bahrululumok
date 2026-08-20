@@ -39,8 +39,8 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
     },
     {
       id: 'notif-3',
-      title: 'Pengingat Pembayaran SPP',
-      message: 'Tagihan SPP & Uang Makan bulan September 2026 telah diterbitkan. Pembayaran via QRIS / BSI VA.',
+      title: 'Pengingat Pembayaran Syahriyah & ADM',
+      message: 'Tagihan Syahriyah & ADM bulan September 2026 telah diterbitkan. Pembayaran via QRIS / BSI VA.',
       time: '1 hari lalu',
       type: 'spp',
       isUnread: false,

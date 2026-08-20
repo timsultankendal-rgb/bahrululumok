@@ -105,7 +105,7 @@ export const PublicWebsiteView: React.FC<PublicWebsiteViewProps> = ({
     { id: '8_catatan_kegiatan', num: '08', title: 'Catatan KBM Harian', desc: 'Jurnal harian asatidz, materi bahasan kitab & evaluasi santri', icon: FileText, color: 'bg-cyan-600 text-white' },
     { id: '9_visi_misi', num: '09', title: 'Visi, Misi & Tujuan', desc: 'Arah haluan kurikulum Ahlussunnah Wal Jama\'ah An-Nahdliyyah', icon: Compass, color: 'bg-emerald-700 text-white' },
     { id: '10_mutakhorijin', num: '10', title: 'Data Mutakhorijin', desc: 'Direktori alumni, nomor ijazah & jejak studi lanjut pesantren', icon: GraduationCap, color: 'bg-rose-500 text-white' },
-    { id: '11_syahriyah', num: '11', title: 'Syahriyah (SPP)', desc: 'Kartu iuran bulanan cawu, status lunas & kuitansi resmi', icon: DollarSign, color: 'bg-emerald-500 text-white' },
+    { id: '11_syahriyah', num: '11', title: 'Syahriyah & ADM', desc: 'Kartu iuran bulanan cawu, status lunas & kuitansi resmi', icon: DollarSign, color: 'bg-emerald-500 text-white' },
     { id: '12_jadwal_tahunan', num: '12', title: 'Kalender Tahunan', desc: 'Agenda Haflah Akhirussanah, Imtihan, PHBI & Ziarah', icon: Calendar, color: 'bg-amber-600 text-white' },
     { id: '13_tata_tertib', num: '13', title: 'Tata Tertib Madrasah', desc: 'Kedisiplinan santri, kode etik asatidz & pedoman adab santri', icon: ShieldCheck, color: 'bg-red-500 text-white' },
     { id: '14_syarat_pendaftaran', num: '14', title: 'PPDB Santri Baru', desc: 'Persyaratan masuk, alur pendaftaran santri baru tahun ajaran 2026/2027', icon: HeartHandshake, color: 'bg-emerald-500 text-white' },
@@ -541,7 +541,7 @@ export const PublicWebsiteView: React.FC<PublicWebsiteViewProps> = ({
                   </div>
 
                   <div 
-                    onClick={() => onNavigateToLogin('wali', undefined, '🔒 Silakan login sebagai Wali Santri untuk memantau presensi, hafalan & SPP.')}
+                    onClick={() => onNavigateToLogin('wali', undefined, '🔒 Silakan login sebagai Wali Santri untuk memantau presensi, hafalan & Syahriyah/ADM.')}
                     className="p-3 bg-white/10 hover:bg-white/20 rounded-2xl border border-white/15 transition-all cursor-pointer flex items-center justify-between group"
                   >
                     <div className="flex items-center gap-3">

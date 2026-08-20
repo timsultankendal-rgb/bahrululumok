@@ -65,7 +65,7 @@ const MENU_LIST_DEF: { id: MenuId; number: number; title: string; desc: string }
   { id: '8_catatan_kegiatan', number: 8, title: 'Catatan Kegiatan', desc: 'Jurnal Harian, Rapat & Event' },
   { id: '9_visi_misi', number: 9, title: 'Visi & Misi', desc: 'Tujuan & Strategi Lembaga' },
   { id: '10_mutakhorijin', number: 10, title: 'Mutakhorijin / Alumni', desc: 'Database Alumni & Kiprah' },
-  { id: '11_syahriyah', number: 11, title: 'Syahriyah & Keuangan', desc: 'SPP, Infaq & Rekap Kas' },
+  { id: '11_syahriyah', number: 11, title: 'Syahriyah & ADM', desc: 'Syahriyah, ADM & Rekap Kas' },
   { id: '12_jadwal_tahunan', number: 12, title: 'Jadwal Tahunan', desc: 'Kalender Akademik Madrasah' },
   { id: '13_tata_tertib', number: 13, title: 'Tata Tertib', desc: 'Disiplin, Poin & Sanksi Santri' },
   { id: '14_syarat_pendaftaran', number: 14, title: 'Syarat Pendaftaran', desc: 'PPDB & Jalur Penerimaan' },

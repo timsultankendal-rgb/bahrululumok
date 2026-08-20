@@ -253,7 +253,7 @@ export const TAHFIDZ_HISTORY: TahfidzRecord[] = [
 export const TAGIHAN_SPP: TagihanItem[] = [
   {
     id: 'inv-2026-08',
-    judul: 'SPP & Uang Makan Santri - Agustus 2026',
+    judul: 'Syahriyah & ADM Santri - Agustus 2026',
     bulan: 'Agustus 2026',
     nominal: 450000,
     jatuhTempo: '10 Agustus 2026',
@@ -264,7 +264,7 @@ export const TAGIHAN_SPP: TagihanItem[] = [
   },
   {
     id: 'inv-2026-09',
-    judul: 'SPP & Uang Makan Santri - September 2026',
+    judul: 'Syahriyah & ADM Santri - September 2026',
     bulan: 'September 2026',
     nominal: 450000,
     jatuhTempo: '10 September 2026',

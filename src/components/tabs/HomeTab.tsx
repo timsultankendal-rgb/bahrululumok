@@ -171,7 +171,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
     },
     {
       id: 'feat-spp',
-      title: 'SPP & Infaq',
+      title: 'Syahriyah & ADM',
       subtitle: 'Bayar QRIS',
       icon: Wallet,
       badge: 'Tagihan',
