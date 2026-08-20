@@ -17,6 +17,20 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap" rel="stylesheet">
+    <script>
+      // SPA path normalizer to prevent 404 on browser refresh
+      (function() {
+        var pathname = window.location.pathname;
+        if (pathname && pathname !== '/' && !pathname.endsWith('.html') && !pathname.includes('.')) {
+          var hash = window.location.hash;
+          var search = window.location.search;
+          var newHash = hash || ('#' + pathname + search);
+          try {
+            window.history.replaceState(null, '', '/' + newHash);
+          } catch(e) {}
+        }
+      })();
+    </script>
   </head>
   <body class="bg-slate-900 text-slate-800 antialiased select-none selection:bg-emerald-500 selection:text-white">
     <div id="root"></div>

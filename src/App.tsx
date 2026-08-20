@@ -90,30 +90,68 @@ import {
 const STORAGE_KEY_BRANDING = 'madrasah_app_branding_v2';
 const STORAGE_KEY_BERANDA = 'madrasah_beranda_config_v2';
 const STORAGE_KEY_SAMBUTAN = 'madrasah_sambutan_data_v2';
+const STORAGE_KEY_LAST_ROUTE = 'madrasah_app_last_route_v2';
+const STORAGE_KEY_LAST_TAB = 'madrasah_app_last_tab_v2';
 
 export type AppRoute = 'website' | 'login' | 'portal';
 
-function detectCurrentRoute(): AppRoute {
-  if (typeof window === 'undefined') return 'website';
+function detectCurrentRouteAndTab(): { route: AppRoute; tab?: TabType } {
+  if (typeof window === 'undefined') return { route: 'website' };
   const path = window.location.pathname.toLowerCase();
   const hash = window.location.hash.toLowerCase();
   const search = window.location.search.toLowerCase();
 
-  if (path.includes('/login') || hash.includes('/login') || hash.includes('login') || search.includes('page=login')) {
-    return 'login';
+  let detectedRoute: AppRoute = 'website';
+  let detectedTab: TabType | undefined = undefined;
+
+  if (hash.includes('/login') || hash.includes('login') || path.includes('/login') || search.includes('page=login') || search.includes('view=login')) {
+    detectedRoute = 'login';
+  } else if (hash.includes('/portal') || hash.includes('portal') || path.includes('/portal') || path.includes('/dashboard') || path.includes('/app') || search.includes('page=portal') || search.includes('view=portal')) {
+    detectedRoute = 'portal';
+    if (hash.includes('/portal/')) {
+      const tabCandidate = hash.split('/portal/')[1]?.split('?')[0]?.split('&')[0];
+      if (tabCandidate) {
+        detectedTab = tabCandidate as TabType;
+      }
+    }
+  } else {
+    // Check saved session storage fallback
+    try {
+      const savedRoute = sessionStorage.getItem(STORAGE_KEY_LAST_ROUTE) as AppRoute;
+      const savedTab = sessionStorage.getItem(STORAGE_KEY_LAST_TAB) as TabType;
+      if (savedRoute && (savedRoute === 'portal' || savedRoute === 'login')) {
+        detectedRoute = savedRoute;
+        if (savedTab) detectedTab = savedTab;
+      }
+    } catch {
+      // ignore
+    }
   }
-  if (path.includes('/portal') || path.includes('/dashboard') || path.includes('/app') || hash.includes('/portal') || hash.includes('portal') || search.includes('page=portal')) {
-    return 'portal';
+
+  // Normalize URL to prevent edge proxy 404 on refresh
+  // If window.location.pathname is not root (e.g. /portal, /login), rewrite history to /#/...
+  try {
+    if (window.location.pathname !== '/' && !window.location.pathname.endsWith('.html')) {
+      const targetHash = detectedRoute === 'portal' 
+        ? (detectedTab ? `#/portal/${detectedTab}` : '#/portal')
+        : detectedRoute === 'login' ? '#/login' : '#/';
+      window.history.replaceState(null, '', `/${targetHash}`);
+    }
+  } catch {
+    // fallback
   }
-  return 'website';
+
+  return { route: detectedRoute, tab: detectedTab };
 }
 
 export default function App() {
+  const initialNav = detectCurrentRouteAndTab();
+
   // Application Primary View Route ('website' = Landing Page, 'login' = Dedicated Login, 'portal' = 18-Menu App)
-  const [appRoute, setAppRoute] = useState<AppRoute>(() => detectCurrentRoute());
+  const [appRoute, setAppRoute] = useState<AppRoute>(initialNav.route);
 
   // Navigation & Role State (Defaults to 'home' or Menu 1)
-  const [activeTab, setActiveTab] = useState<TabType>('home');
+  const [activeTab, setActiveTab] = useState<TabType>(initialNav.tab || 'home');
   const [activeRole, setActiveRole] = useState<UserRole>('santri');
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
 
@@ -182,8 +220,11 @@ export default function App() {
   // Sync route with browser back/forward and hash changes
   useEffect(() => {
     const handleLocationChange = () => {
-      const detected = detectCurrentRoute();
-      setAppRoute(detected);
+      const detected = detectCurrentRouteAndTab();
+      setAppRoute(detected.route);
+      if (detected.tab) {
+        setActiveTab(detected.tab);
+      }
     };
 
     window.addEventListener('popstate', handleLocationChange);
@@ -201,13 +242,26 @@ export default function App() {
     if (targetTab) {
       setActiveTab(targetTab);
     }
-    const urlMap: Record<AppRoute, string> = {
-      website: '/',
-      login: '/login',
-      portal: '/portal',
-    };
+    
     try {
-      window.history.pushState({ route, tab: targetTab }, '', urlMap[route]);
+      sessionStorage.setItem(STORAGE_KEY_LAST_ROUTE, route);
+      if (targetTab) {
+        sessionStorage.setItem(STORAGE_KEY_LAST_TAB, targetTab);
+      } else {
+        sessionStorage.removeItem(STORAGE_KEY_LAST_TAB);
+      }
+    } catch {
+      // fallback
+    }
+
+    const targetHash = route === 'portal'
+      ? (targetTab ? `#/portal/${targetTab}` : '#/portal')
+      : route === 'login'
+      ? '#/login'
+      : '#/';
+
+    try {
+      window.history.replaceState({ route, tab: targetTab }, '', `/${targetHash}`);
     } catch {
       // safe fallback for restricted sandbox
     }
@@ -253,6 +307,12 @@ export default function App() {
     setAuthSession(null);
     setLoginNotice(undefined);
     setPendingTargetTab(undefined);
+    try {
+      sessionStorage.removeItem(STORAGE_KEY_LAST_ROUTE);
+      sessionStorage.removeItem(STORAGE_KEY_LAST_TAB);
+    } catch {
+      // fallback
+    }
     navigateTo('website');
   };
 
