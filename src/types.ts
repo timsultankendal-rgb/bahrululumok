@@ -449,7 +449,7 @@ export interface PrayerTime {
 
 export interface JadwalItem {
   id: string;
-  hari: 'Senin' | 'Selasa' | 'Rabu' | 'Kamis' | 'Jumat' | 'Sabtu';
+  hari: 'Senin' | 'Selasa' | 'Rabu' | 'Kamis' | 'Jumat' | 'Sabtu' | 'Ahad' | 'Minggu';
   jamMulai: string;
   jamSelesai: string;
   mataPelajaran: string;

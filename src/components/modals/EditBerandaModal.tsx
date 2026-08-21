@@ -66,11 +66,18 @@ export const DEFAULT_BERANDA_CONFIG: BerandaConfig = {
     { name: 'Isya', time: '18:56', arabicName: 'العشاء' }
   ],
   mutabaahItems: [
-    { id: '1', kegiatan: 'Shalat Subuh Berjamaah', kategori: 'Sholat Wajib', isDone: true, waktu: '04:35' },
-    { id: '2', kegiatan: 'Tilawah Al-Qur\'an 1 Juz', kategori: 'Tilawah & Dzikir', isDone: true, waktu: '05:30' },
-    { id: '3', kegiatan: 'Shalat Dhuha 4 Rakaat', kategori: 'Sholat Sunnah', isDone: false, waktu: '07:30' },
-    { id: '4', kegiatan: 'Shalat Dzuhur Berjamaah', kategori: 'Sholat Wajib', isDone: false, waktu: '12:00' },
-    { id: '5', kegiatan: 'Muthala\'ah Kitab Kuning', kategori: 'Adab & Akhlak', isDone: false, waktu: '19:30' }
+    { id: 'm-1', kegiatan: 'Sholat Shubuh Berjamaah di Masjid', kategori: 'Sholat Wajib', isDone: true, waktu: '04:35 WIB' },
+    { id: 'm-2', kegiatan: 'Dzikir Pagi & Ratib Al-Haddad', kategori: 'Tilawah & Dzikir', isDone: true, waktu: '05:15 WIB' },
+    { id: 'm-3', kegiatan: 'Sholat Dhuha (2 / 4 Rakaat)', kategori: 'Sholat Sunnah', isDone: true, waktu: '07:15 WIB' },
+    { id: 'm-4', kegiatan: 'Tadarus Al-Qur\'an & Ziyadah Tahfidz', kategori: 'Tilawah & Dzikir', isDone: false, waktu: '11:30 WIB' },
+    { id: 'm-5', kegiatan: 'Sholat Dzuhur Berjamaah di Masjid', kategori: 'Sholat Wajib', isDone: false, waktu: '12:00 WIB' },
+    { id: 'm-6', kegiatan: 'Sholat Ashar Berjamaah & Wirid', kategori: 'Sholat Wajib', isDone: false, waktu: '15:15 WIB' },
+    { id: 'm-7', kegiatan: 'Dzikir Petang & Surat Al-Waqi\'ah', kategori: 'Tilawah & Dzikir', isDone: false, waktu: '16:30 WIB' },
+    { id: 'm-8', kegiatan: 'Sholat Maghrib Berjamaah & Rawatib', kategori: 'Sholat Wajib', isDone: false, waktu: '18:00 WIB' },
+    { id: 'm-9', kegiatan: 'Muthala\'ah Kitab Kuning / Belajar Malam', kategori: 'Adab & Akhlak', isDone: false, waktu: '19:00 WIB' },
+    { id: 'm-10', kegiatan: 'Sholat Isya Berjamaah & Sholat Witir', kategori: 'Sholat Wajib', isDone: false, waktu: '19:30 WIB' },
+    { id: 'm-11', kegiatan: 'Sholat Qiyamul Lail / Tahajjud', kategori: 'Sholat Sunnah', isDone: false, waktu: '03:15 WIB' },
+    { id: 'm-12', kegiatan: 'Sedekah Subuh / Infaq Yaumiyah', kategori: 'Adab & Akhlak', isDone: false, waktu: '05:00 WIB' }
   ]
 };
 

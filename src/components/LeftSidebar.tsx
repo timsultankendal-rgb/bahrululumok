@@ -305,6 +305,11 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
               <p className="text-[10px] text-emerald-100 font-medium truncate">
                 {branding.institutionName}
               </p>
+              {branding.appSubtitle && (
+                <p className="text-[9px] text-emerald-200/90 font-normal truncate mt-0.5">
+                  {branding.appSubtitle}
+                </p>
+              )}
               {branding.portalBadge && (
                 <span className="inline-block mt-0.5 text-[8px] bg-emerald-950/50 text-emerald-200 font-semibold px-1.5 py-0.2 rounded border border-white/10 truncate max-w-full">
                   {branding.portalBadge}

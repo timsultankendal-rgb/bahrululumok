@@ -486,11 +486,33 @@ export const QuranIbadahTab: React.FC<QuranIbadahTabProps> = ({
       {/* ================= 4. MUTABA'AH YAUMIYAH FULL VIEW ================= */}
       {activeSubTab === 'mutabaah' && (
         <div className="flex flex-col gap-3">
-          <div className="p-4 rounded-3xl bg-gradient-to-br from-emerald-600 via-teal-700 to-emerald-800 border border-emerald-500/40 shadow-md text-white">
-            <h3 className="text-sm font-extrabold">Mutaba'ah Yaumiyah Santri</h3>
-            <p className="text-xs text-emerald-100 font-medium mt-0.5">
-              Pantau kepatuhan ibadah fardhu, sunnah, dan tahfidz harianmu secara mandiri.
-            </p>
+          <div className="p-4 rounded-3xl bg-gradient-to-br from-emerald-700 via-teal-700 to-emerald-900 border border-emerald-500/40 shadow-md text-white">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-black">Mutaba'ah Yaumiyah Santri</h3>
+                <p className="text-xs text-emerald-100 font-medium mt-0.5">
+                  Pantau kepatuhan ibadah fardhu, sunnah, dan amalan harian secara mandiri.
+                </p>
+              </div>
+              <div className="text-right">
+                <span className="text-lg font-black text-emerald-200">
+                  {mutabaahList.length > 0 ? Math.round((mutabaahList.filter(m => m.isDone).length / mutabaahList.length) * 100) : 0}%
+                </span>
+                <div className="text-[10px] text-emerald-100/90 font-medium">
+                  {mutabaahList.filter(m => m.isDone).length} / {mutabaahList.length} Selesai
+                </div>
+              </div>
+            </div>
+
+            {/* Progress bar */}
+            <div className="w-full h-2 bg-emerald-950/40 rounded-full overflow-hidden mt-3 border border-emerald-500/30">
+              <div
+                className="h-full bg-gradient-to-r from-amber-400 to-emerald-300 rounded-full transition-all duration-500"
+                style={{
+                  width: `${mutabaahList.length > 0 ? Math.round((mutabaahList.filter(m => m.isDone).length / mutabaahList.length) * 100) : 0}%`
+                }}
+              />
+            </div>
           </div>
 
           <div className="flex flex-col gap-2">
@@ -503,37 +525,39 @@ export const QuranIbadahTab: React.FC<QuranIbadahTabProps> = ({
                   if (!item.isDone) playSuccessSound();
                   else playTapSound();
                 }}
-                className={`p-3.5 rounded-3xl border transition-all text-left flex items-center justify-between shadow-xs ${
+                className={`p-3 sm:p-3.5 rounded-2xl border transition-all text-left flex items-center justify-between shadow-2xs cursor-pointer active:scale-[0.99] gap-3 ${
                   item.isDone
                     ? 'bg-emerald-50/60 border-emerald-200 text-slate-600'
-                    : 'bg-white border-slate-200/80 text-slate-800 hover:border-slate-300'
+                    : 'bg-white border-slate-200/80 text-slate-800 hover:border-emerald-300'
                 }`}
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 min-w-0 flex-1">
                   <div
                     className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 border transition-colors ${
                       item.isDone
                         ? 'bg-emerald-600 border-emerald-600 text-white shadow-2xs'
-                        : 'border-slate-300 bg-white text-transparent'
+                        : 'border-slate-300 bg-slate-50 text-transparent'
                     }`}
                   >
-                    <Check className="w-4 h-4 stroke-[3]" />
+                    <Check className="w-3.5 h-3.5 stroke-[3]" />
                   </div>
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <h5
-                      className={`text-xs font-bold ${
-                        item.isDone ? 'line-through text-slate-400' : 'text-slate-800'
+                      className={`text-xs font-bold truncate ${
+                        item.isDone ? 'line-through text-slate-400 font-normal' : 'text-slate-800'
                       }`}
                     >
                       {item.kegiatan}
                     </h5>
-                    <span className="text-[10px] text-slate-500 font-medium capitalize">
-                      {item.kategori.replace('_', ' ')}
+                    <span className="inline-block mt-0.5 text-[9px] px-1.5 py-0.2 rounded-md font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+                      {item.kategori}
                     </span>
                   </div>
                 </div>
 
-                <span className="text-[11px] font-mono font-bold text-emerald-700">{item.waktu}</span>
+                <span className="text-[10px] sm:text-[11px] font-mono font-bold text-emerald-700 shrink-0 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                  {item.waktu}
+                </span>
               </button>
             ))}
           </div>

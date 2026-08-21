@@ -50,7 +50,7 @@ export const AkademikTab: React.FC<AkademikTabProps> = ({
   const [activeSubTab, setActiveSubTab] = useState<'jadwal' | 'tugas' | 'raport' | 'tahfidz' | 'cbt'>('jadwal');
   
   // Jadwal Day Filter
-  const [selectedDay, setSelectedDay] = useState<'Senin' | 'Selasa' | 'Rabu' | 'Kamis' | 'Jumat' | 'Sabtu'>('Senin');
+  const [selectedDay, setSelectedDay] = useState<'Senin' | 'Selasa' | 'Rabu' | 'Kamis' | 'Jumat' | 'Sabtu' | 'Ahad'>('Senin');
 
   // CBT Exam State
   const [cbtState, setCbtState] = useState<'idle' | 'running' | 'finished'>('idle');
@@ -124,8 +124,8 @@ export const AkademikTab: React.FC<AkademikTabProps> = ({
 
   const filteredJadwal = JADWAL_PELAJARAN.filter((j) => j.hari === selectedDay);
 
-  const days: ('Senin' | 'Selasa' | 'Rabu' | 'Kamis' | 'Jumat' | 'Sabtu')[] = [
-    'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'
+  const days: ('Senin' | 'Selasa' | 'Rabu' | 'Kamis' | 'Jumat' | 'Sabtu' | 'Ahad')[] = [
+    'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Ahad'
   ];
 
   return (

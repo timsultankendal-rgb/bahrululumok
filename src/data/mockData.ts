@@ -167,6 +167,83 @@ export const JADWAL_PELAJARAN: JadwalItem[] = [
     ruang: 'Kelas IX-A',
     iconName: 'Scroll',
     color: 'amber'
+  },
+  {
+    id: 'jdw-11',
+    hari: 'Kamis',
+    jamMulai: '08:45',
+    jamSelesai: '10:15',
+    mataPelajaran: 'Imlak & Pegon Melayu',
+    guru: 'Ust. Ridwan Hakim, S.Ag.',
+    ruang: 'Kelas IX-A',
+    iconName: 'BookOpen',
+    color: 'teal'
+  },
+  {
+    id: 'jdw-12',
+    hari: 'Jumat',
+    jamMulai: '06:30',
+    jamSelesai: '08:00',
+    mataPelajaran: 'Mujahadah & Khotmil Quran',
+    guru: 'KH. Abdullah Syukri, Lc.',
+    ruang: 'Masjid Utama',
+    iconName: 'Sparkles',
+    color: 'emerald'
+  },
+  {
+    id: 'jdw-13',
+    hari: 'Jumat',
+    jamMulai: '08:00',
+    jamSelesai: '09:30',
+    mataPelajaran: 'Khotbah & Ibadah Sholat Jumat',
+    guru: 'Drs. KH. Syamsul Huda',
+    ruang: 'Masjid Utama',
+    iconName: 'Landmark',
+    color: 'indigo'
+  },
+  {
+    id: 'jdw-14',
+    hari: 'Sabtu',
+    jamMulai: '14:00',
+    jamSelesai: '15:00',
+    mataPelajaran: 'Fiqih Ibadah (Safinatun Najah)',
+    guru: 'Ust. Ahmad Mufid, M.Pd.I.',
+    ruang: 'Kelas IX-A',
+    iconName: 'BookOpen',
+    color: 'emerald'
+  },
+  {
+    id: 'jdw-15',
+    hari: 'Sabtu',
+    jamMulai: '15:15',
+    jamSelesai: '16:15',
+    mataPelajaran: 'Tauhid Aqidah (Aqidatul Awam)',
+    guru: 'KH. Abdullah Syukri, Lc.',
+    ruang: 'Kelas IX-A',
+    iconName: 'Sparkles',
+    color: 'teal'
+  },
+  {
+    id: 'jdw-16',
+    hari: 'Ahad',
+    jamMulai: '14:00',
+    jamSelesai: '15:00',
+    mataPelajaran: "Al-Qur'an & Tajwid Praktis",
+    guru: 'Ust. Ridwan Hakim, S.Ag.',
+    ruang: 'Kelas IX-A',
+    iconName: 'BookOpen',
+    color: 'blue'
+  },
+  {
+    id: 'jdw-17',
+    hari: 'Ahad',
+    jamMulai: '15:15',
+    jamSelesai: '16:15',
+    mataPelajaran: 'Ahlaqul Karimah (Ahlaqul Banin)',
+    guru: 'Ust. Ahmad Mufid, M.Pd.I.',
+    ruang: 'Kelas IX-A',
+    iconName: 'HeartHandshake',
+    color: 'rose'
   }
 ];
 
@@ -621,15 +698,18 @@ export const CBT_EXAM_DATA: CBTExam = {
 };
 
 export const MUTABAAH_ITEMS: MutabaahItem[] = [
-  { id: 'm-1', kegiatan: 'Sholat Shubuh Berjamaah di Masjid', kategori: 'sholat_fardhu', waktu: '04:35 WIB', isDone: true },
-  { id: 'm-2', kegiatan: 'Dzikir Pagi & Ratib Al-Haddad', kategori: 'akhlak', waktu: '05:15 WIB', isDone: true },
-  { id: 'm-3', kegiatan: 'Sholat Dhuha 4 Rakaat', kategori: 'sunnah', waktu: '07:15 WIB', isDone: true },
-  { id: 'm-4', kegiatan: 'Tadarus Al-Quran Minimal 1 Ruku', kategori: 'quran', waktu: '11:30 WIB', isDone: false },
-  { id: 'm-5', kegiatan: 'Sholat Dzuhur Berjamaah', kategori: 'sholat_fardhu', waktu: '12:00 WIB', isDone: false },
-  { id: 'm-6', kegiatan: 'Sholat Ashar Berjamaah', kategori: 'sholat_fardhu', waktu: '15:15 WIB', isDone: false },
-  { id: 'm-7', kegiatan: 'Setoran Ziyadah / Murajaah', kategori: 'quran', waktu: '16:30 WIB', isDone: false },
-  { id: 'm-8', kegiatan: 'Sholat Maghrib & Isya Berjamaah', kategori: 'sholat_fardhu', waktu: '18:00 WIB', isDone: false },
-  { id: 'm-9', kegiatan: 'Sholat Tahajjud & Witir', kategori: 'sunnah', waktu: '03:15 WIB', isDone: false }
+  { id: 'm-1', kegiatan: 'Sholat Shubuh Berjamaah di Masjid', kategori: 'Sholat Wajib', waktu: '04:35 WIB', isDone: true },
+  { id: 'm-2', kegiatan: 'Dzikir Pagi & Ratib Al-Haddad', kategori: 'Tilawah & Dzikir', waktu: '05:15 WIB', isDone: true },
+  { id: 'm-3', kegiatan: 'Sholat Dhuha (2 / 4 Rakaat)', kategori: 'Sholat Sunnah', waktu: '07:15 WIB', isDone: true },
+  { id: 'm-4', kegiatan: 'Tadarus Al-Qur\'an & Ziyadah Tahfidz', kategori: 'Tilawah & Dzikir', waktu: '11:30 WIB', isDone: false },
+  { id: 'm-5', kegiatan: 'Sholat Dzuhur Berjamaah di Masjid', kategori: 'Sholat Wajib', waktu: '12:00 WIB', isDone: false },
+  { id: 'm-6', kegiatan: 'Sholat Ashar Berjamaah & Wirid', kategori: 'Sholat Wajib', waktu: '15:15 WIB', isDone: false },
+  { id: 'm-7', kegiatan: 'Dzikir Petang & Surat Al-Waqi\'ah', kategori: 'Tilawah & Dzikir', waktu: '16:30 WIB', isDone: false },
+  { id: 'm-8', kegiatan: 'Sholat Maghrib Berjamaah & Rawatib', kategori: 'Sholat Wajib', waktu: '18:00 WIB', isDone: false },
+  { id: 'm-9', kegiatan: 'Muthala\'ah Kitab Kuning / Belajar Malam', kategori: 'Adab & Akhlak', waktu: '19:00 WIB', isDone: false },
+  { id: 'm-10', kegiatan: 'Sholat Isya Berjamaah & Sholat Witir', kategori: 'Sholat Wajib', waktu: '19:30 WIB', isDone: false },
+  { id: 'm-11', kegiatan: 'Sholat Qiyamul Lail / Tahajjud', kategori: 'Sholat Sunnah', waktu: '03:15 WIB', isDone: false },
+  { id: 'm-12', kegiatan: 'Sedekah Subuh / Infaq Yaumiyah', kategori: 'Adab & Akhlak', waktu: '05:00 WIB', isDone: false }
 ];
 
 export const PENGUMUMAN_LIST: PengumumanItem[] = [

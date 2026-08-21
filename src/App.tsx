@@ -192,7 +192,18 @@ export default function App() {
   const [student, setStudent] = useState<StudentProfile>(INITIAL_STUDENT);
   const [teacher, setTeacher] = useState<TeacherProfile>(INITIAL_TEACHER);
   const [tugasList, setTugasList] = useState<TugasItem[]>(TUGAS_LIST);
-  const [mutabaahList, setMutabaahList] = useState<MutabaahItem[]>(MUTABAAH_ITEMS);
+  const [mutabaahList, setMutabaahList] = useState<MutabaahItem[]>(() => {
+    try {
+      const saved = localStorage.getItem('madrasah_mutabaah_v3');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {
+      // fallback
+    }
+    return MUTABAAH_ITEMS;
+  });
   const [pengumumanList, setPengumumanList] = useState<PengumumanItem[]>(PENGUMUMAN_LIST);
   const [presensiHariIni, setPresensiHariIni] = useState<PresensiRecord | null>(INITIAL_PRESENSI[0]);
   const [unreadNotifications, setUnreadNotifications] = useState<number>(2);
@@ -425,11 +436,42 @@ export default function App() {
     }
   };
 
-  // Mutaba'ah item toggle
+  // Mutaba'ah item toggle & persistence
   const handleToggleMutabaah = (id: string) => {
-    setMutabaahList((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, isDone: !item.isDone } : item))
-    );
+    setMutabaahList((prev) => {
+      const updated = prev.map((item) => (item.id === id ? { ...item, isDone: !item.isDone } : item));
+      try {
+        localStorage.setItem('madrasah_mutabaah_v3', JSON.stringify(updated));
+      } catch (err) {
+        console.warn('LocalStorage error', err);
+      }
+      return updated;
+    });
+  };
+
+  const handleResetMutabaah = () => {
+    setMutabaahList((prev) => {
+      const updated = prev.map((item) => ({ ...item, isDone: false }));
+      try {
+        localStorage.setItem('madrasah_mutabaah_v3', JSON.stringify(updated));
+      } catch (err) {
+        console.warn('LocalStorage error', err);
+      }
+      return updated;
+    });
+  };
+
+  const handleToggleAllMutabaah = () => {
+    setMutabaahList((prev) => {
+      const allDone = prev.every((item) => item.isDone);
+      const updated = prev.map((item) => ({ ...item, isDone: !allDone }));
+      try {
+        localStorage.setItem('madrasah_mutabaah_v3', JSON.stringify(updated));
+      } catch (err) {
+        console.warn('LocalStorage error', err);
+      }
+      return updated;
+    });
   };
 
   // Add Tahfidz Record
@@ -599,6 +641,8 @@ export default function App() {
                   tugasList={tugasList}
                   mutabaahList={mutabaahList}
                   onToggleMutabaah={handleToggleMutabaah}
+                  onResetMutabaah={handleResetMutabaah}
+                  onToggleAllMutabaah={handleToggleAllMutabaah}
                   pengumumanList={pengumumanList}
                   onOpenPresensi={() => setActiveTab('1_daftar_hadir')}
                   onOpenTanyaUstadz={() => setIsTanyaUstadzOpen(true)}
