@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Shield,
   Key,
@@ -24,7 +24,13 @@ import {
   Sparkles,
   Phone,
   HelpCircle,
-  FileText
+  FileText,
+  Camera,
+  Upload,
+  Image as ImageIcon,
+  Link as LinkIcon,
+  User,
+  RefreshCw,
 } from 'lucide-react';
 import {
   UserRole,
@@ -53,6 +59,60 @@ interface HakAksesSettingsModalProps {
   onClose: () => void;
   onPermissionsUpdated?: () => void;
 }
+
+export const AVATAR_PRESETS = [
+  {
+    category: 'Dewan Asatidz (Ustadz)',
+    role: 'guru',
+    items: [
+      { label: 'Ust. M. Fauzi', url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&auto=format&fit=crop&q=80' },
+      { label: 'Ust. Abdullah', url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=300&auto=format&fit=crop&q=80' },
+      { label: 'Ust. Mansur', url: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=300&auto=format&fit=crop&q=80' },
+      { label: 'Ust. Ridwan', url: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=300&auto=format&fit=crop&q=80' },
+      { label: 'Ust. Hasan', url: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=300&auto=format&fit=crop&q=80' },
+    ]
+  },
+  {
+    category: 'Dewan Asatidzah (Ustadzah)',
+    role: 'guru',
+    items: [
+      { label: 'Usth. Siti Fatimah', url: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=300&auto=format&fit=crop&q=80' },
+      { label: 'Usth. Maryam', url: 'https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?w=300&auto=format&fit=crop&q=80' },
+      { label: 'Usth. Aisyah', url: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=300&auto=format&fit=crop&q=80' },
+      { label: 'Usth. Nurul', url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80' },
+    ]
+  },
+  {
+    category: 'Santri Putra',
+    role: 'santri',
+    items: [
+      { label: 'Santri Ahmad', url: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=300&auto=format&fit=crop&q=80' },
+      { label: 'Santri Farhan', url: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=300&auto=format&fit=crop&q=80' },
+      { label: 'Santri Bilal', url: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=300&auto=format&fit=crop&q=80' },
+      { label: 'Santri Zaid', url: 'https://images.unsplash.com/photo-1501196354995-cbb51c65aaea?w=300&auto=format&fit=crop&q=80' },
+    ]
+  },
+  {
+    category: 'Santri Putri (Santriwati)',
+    role: 'santri',
+    items: [
+      { label: 'Santriwati Zahra', url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=300&auto=format&fit=crop&q=80' },
+      { label: 'Santriwati Nabila', url: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=300&auto=format&fit=crop&q=80' },
+      { label: 'Santriwati Khadijah', url: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=300&auto=format&fit=crop&q=80' },
+      { label: 'Santriwati Salma', url: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=300&auto=format&fit=crop&q=80' },
+    ]
+  },
+  {
+    category: 'Wali Santri & Pimpinan',
+    role: 'wali',
+    items: [
+      { label: 'H. Budi (Wali Santri)', url: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=300&auto=format&fit=crop&q=80' },
+      { label: 'Hj. Siti (Wali Santri)', url: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=300&auto=format&fit=crop&q=80' },
+      { label: 'H. Ahmad Zaki (Admin)', url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80' },
+      { label: 'Staf TU Administrasi', url: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=300&auto=format&fit=crop&q=80' },
+    ]
+  }
+];
 
 const MENU_LIST_DEF: { id: MenuId; number: number; title: string; desc: string }[] = [
   { id: '1_daftar_hadir', number: 1, title: 'Daftar Hadir', desc: 'Presensi KBM Murid & Asatidz' },
@@ -101,8 +161,21 @@ export const HakAksesSettingsModal: React.FC<HakAksesSettingsModalProps> = ({
     subTitle: '',
     kelas: 'Kelas 1',
     noWa: '',
+    avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
     isActive: true,
   });
+
+  // Photo Selector State inside Form
+  const [photoPickerMode, setPhotoPickerMode] = useState<'preset' | 'upload' | 'url'>('preset');
+  const [customPhotoUrlInput, setCustomPhotoUrlInput] = useState<string>('');
+  const [selectedPresetCategory, setSelectedPresetCategory] = useState<string>('Semua');
+  const [uploadStatus, setUploadStatus] = useState<string | null>(null);
+  const formFileInputRef = useRef<HTMLInputElement>(null);
+
+  // Quick Photo Change Modal for direct user card click
+  const [quickPhotoUser, setQuickPhotoUser] = useState<UserAccount | null>(null);
+  const [quickPhotoUrl, setQuickPhotoUrl] = useState<string>('');
+  const quickFileInputRef = useRef<HTMLInputElement>(null);
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState<boolean>(false);
@@ -121,6 +194,45 @@ export const HakAksesSettingsModal: React.FC<HakAksesSettingsModalProps> = ({
   };
 
   if (!isOpen) return null;
+
+  // Process File to Compressed Data URL
+  const processImageFile = (file: File, onDone: (dataUrl: string) => void) => {
+    setUploadStatus('Memproses kompresi foto...');
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_SIZE = 450;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_SIZE) {
+            height = Math.round((height * MAX_SIZE) / width);
+            width = MAX_SIZE;
+          }
+        } else {
+          if (height > MAX_SIZE) {
+            width = Math.round((width * MAX_SIZE) / height);
+            height = MAX_SIZE;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, width, height);
+
+        const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+        onDone(compressedDataUrl);
+        setUploadStatus('✅ Foto berhasil diunggah!');
+        setTimeout(() => setUploadStatus(null), 2500);
+      };
+      img.src = event.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
 
   // Handle Changing Menu Access Level for a specific role
   const handleMenuAccessChange = (menuId: MenuId, level: AccessLevel) => {
@@ -203,8 +315,11 @@ export const HakAksesSettingsModal: React.FC<HakAksesSettingsModalProps> = ({
       subTitle: '',
       kelas: 'Kelas 1',
       noWa: '',
+      avatarUrl: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=300&auto=format&fit=crop&q=80',
       isActive: true,
     });
+    setCustomPhotoUrlInput('');
+    setPhotoPickerMode('preset');
     setIsUserFormOpen(true);
   };
 
@@ -212,6 +327,8 @@ export const HakAksesSettingsModal: React.FC<HakAksesSettingsModalProps> = ({
     playTapSound();
     setEditingUserId(user.id);
     setUserFormData({ ...user });
+    setCustomPhotoUrlInput(user.avatarUrl || '');
+    setPhotoPickerMode('preset');
     setIsUserFormOpen(true);
   };
 
@@ -235,13 +352,13 @@ export const HakAksesSettingsModal: React.FC<HakAksesSettingsModalProps> = ({
       noWa: userFormData.noWa?.trim() || '',
       isActive: userFormData.isActive ?? true,
       createdAt: userFormData.createdAt || new Date().toISOString().split('T')[0],
-      avatarUrl: userFormData.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
+      avatarUrl: userFormData.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80',
     };
 
     await syncUserAccountToCloud(newUser);
     setUsers(getLocalUserAccounts());
     setIsUserFormOpen(false);
-    showToast(`✅ Akun ${newUser.fullName} berhasil disimpan!`);
+    showToast(`✅ Akun ${newUser.fullName} dengan foto berhasil disimpan!`);
   };
 
   const handleDeleteUser = async (userId: string, userName: string) => {
@@ -263,6 +380,26 @@ export const HakAksesSettingsModal: React.FC<HakAksesSettingsModalProps> = ({
     await syncUserAccountToCloud(updated);
     setUsers(getLocalUserAccounts());
     showToast(`Status akun ${user.fullName} diubah menjadi ${updated.isActive ? 'Aktif' : 'Nonaktif'}.`);
+  };
+
+  // Quick Photo Modal Handlers
+  const handleOpenQuickPhoto = (user: UserAccount) => {
+    playTapSound();
+    setQuickPhotoUser(user);
+    setQuickPhotoUrl(user.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80');
+  };
+
+  const handleSaveQuickPhoto = async (newUrl: string) => {
+    if (!quickPhotoUser) return;
+    playTapSound();
+    const updatedUser: UserAccount = {
+      ...quickPhotoUser,
+      avatarUrl: newUrl,
+    };
+    await syncUserAccountToCloud(updatedUser);
+    setUsers(getLocalUserAccounts());
+    setQuickPhotoUser(null);
+    showToast(`📸 Foto akun ${updatedUser.fullName} berhasil diperbarui!`);
   };
 
   // Filtered Users
@@ -658,13 +795,22 @@ export const HakAksesSettingsModal: React.FC<HakAksesSettingsModalProps> = ({
                     }`}
                   >
                     <div className="flex items-start gap-3">
-                      <div className="w-11 h-11 rounded-2xl bg-slate-100 overflow-hidden border border-slate-200 shrink-0">
+                      {/* Avatar with Quick Photo Change Overlay */}
+                      <div 
+                        onClick={() => handleOpenQuickPhoto(user)}
+                        className="relative group w-12 h-12 rounded-2xl bg-slate-100 overflow-hidden border-2 border-emerald-500/30 shrink-0 cursor-pointer shadow-xs"
+                        title="Klik untuk ganti foto profil akun"
+                      >
                         <img
-                          src={user.avatarUrl}
+                          src={user.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80'}
                           alt={user.fullName}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                           referrerPolicy="no-referrer"
                         />
+                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white">
+                          <Camera className="w-4 h-4" />
+                          <span className="text-[8px] font-bold mt-0.5">Ubah</span>
+                        </div>
                       </div>
 
                       <div className="space-y-1 flex-1 min-w-0">
@@ -722,6 +868,15 @@ export const HakAksesSettingsModal: React.FC<HakAksesSettingsModalProps> = ({
 
                       <div className="flex items-center gap-1">
                         <button
+                          onClick={() => handleOpenQuickPhoto(user)}
+                          className="px-2 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-[10px] font-bold cursor-pointer transition-all flex items-center gap-1"
+                          title="Ganti Foto Profil"
+                        >
+                          <Camera className="w-3 h-3" />
+                          <span>Foto</span>
+                        </button>
+
+                        <button
                           onClick={() => handleToggleUserActive(user)}
                           className={`px-2 py-1 rounded-lg text-[10px] font-bold cursor-pointer transition-all ${
                             user.isActive
@@ -730,13 +885,13 @@ export const HakAksesSettingsModal: React.FC<HakAksesSettingsModalProps> = ({
                           }`}
                           title="Ubah Status Aktif/Nonaktif"
                         >
-                          {user.isActive ? 'Nonaktifkan' : 'Aktifkan'}
+                          {user.isActive ? 'Nonaktif' : 'Aktif'}
                         </button>
 
                         <button
                           onClick={() => handleOpenEditUser(user)}
                           className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 cursor-pointer transition-all"
-                          title="Edit Akun"
+                          title="Edit Lengkap Akun"
                         >
                           <Edit3 className="w-3.5 h-3.5" />
                         </button>
@@ -880,23 +1035,223 @@ export const HakAksesSettingsModal: React.FC<HakAksesSettingsModalProps> = ({
         </div>
       </div>
 
-      {/* SUB-MODAL: Add / Edit User Form */}
+      {/* SUB-MODAL: Add / Edit User Form with Full Photo Management */}
       {isUserFormOpen && (
-        <div className="fixed inset-0 z-60 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-3">
-          <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-slate-200 overflow-hidden animate-in zoom-in-95 duration-150">
-            <div className="bg-gradient-to-r from-emerald-800 to-teal-700 p-4 text-white flex items-center justify-between">
-              <h3 className="font-black text-sm">
-                {editingUserId ? 'Edit Akun Pengguna' : 'Tambah Akun Pengguna Baru'}
-              </h3>
+        <div className="fixed inset-0 z-60 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
+          <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-slate-200 overflow-hidden animate-in zoom-in-95 duration-150 my-auto max-h-[90vh] flex flex-col">
+            <div className="bg-gradient-to-r from-emerald-800 to-teal-700 p-4 text-white flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-amber-400 text-emerald-950 flex items-center justify-center font-bold">
+                  <User className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="font-black text-sm">
+                    {editingUserId ? 'Edit Akun & Foto Pengguna' : 'Tambah Akun Pengguna Baru'}
+                  </h3>
+                  <p className="text-[11px] text-emerald-100">Kredensial login & foto profil madrasah</p>
+                </div>
+              </div>
               <button
                 onClick={() => setIsUserFormOpen(false)}
-                className="text-white/80 hover:text-white"
+                className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form onSubmit={handleSaveUserForm} className="p-4 sm:p-5 space-y-3">
+            <form onSubmit={handleSaveUserForm} className="p-4 sm:p-5 space-y-4 overflow-y-auto flex-1">
+              {/* SECTION: FOTO PROFIL / AVATAR */}
+              <div className="bg-slate-50 border border-slate-200 p-3.5 rounded-2xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-black text-slate-800 flex items-center gap-1.5">
+                    <Camera className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Foto Profil Akun</span>
+                  </label>
+                  {uploadStatus && (
+                    <span className="text-[10px] font-bold text-emerald-700 animate-pulse">
+                      {uploadStatus}
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-center sm:items-start gap-3.5">
+                  {/* Avatar Preview */}
+                  <div className="relative group w-20 h-20 rounded-2xl bg-white border-2 border-emerald-600/40 shadow-sm overflow-hidden shrink-0">
+                    <img
+                      src={userFormData.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80'}
+                      alt="Preview Foto"
+                      className="w-full h-full object-cover"
+                      referrerPolicy="no-referrer"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => formFileInputRef.current?.click()}
+                      className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white cursor-pointer"
+                    >
+                      <Upload className="w-4 h-4" />
+                      <span className="text-[9px] font-bold mt-0.5">Unggah</span>
+                    </button>
+                  </div>
+
+                  {/* Photo Controls */}
+                  <div className="flex-1 w-full space-y-2">
+                    {/* Mode Tabs */}
+                    <div className="grid grid-cols-3 gap-1 bg-slate-200/80 p-1 rounded-xl text-[10px] font-bold">
+                      <button
+                        type="button"
+                        onClick={() => setPhotoPickerMode('preset')}
+                        className={`py-1 rounded-lg transition-all cursor-pointer ${
+                          photoPickerMode === 'preset'
+                            ? 'bg-white text-emerald-800 shadow-xs'
+                            : 'text-slate-600 hover:text-slate-900'
+                        }`}
+                      >
+                        Galeri Avatar
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPhotoPickerMode('upload');
+                          formFileInputRef.current?.click();
+                        }}
+                        className={`py-1 rounded-lg transition-all cursor-pointer ${
+                          photoPickerMode === 'upload'
+                            ? 'bg-white text-emerald-800 shadow-xs'
+                            : 'text-slate-600 hover:text-slate-900'
+                        }`}
+                      >
+                        Unggah File
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPhotoPickerMode('url')}
+                        className={`py-1 rounded-lg transition-all cursor-pointer ${
+                          photoPickerMode === 'url'
+                            ? 'bg-white text-emerald-800 shadow-xs'
+                            : 'text-slate-600 hover:text-slate-900'
+                        }`}
+                      >
+                        Link URL
+                      </button>
+                    </div>
+
+                    {/* Mode 1: Presets */}
+                    {photoPickerMode === 'preset' && (
+                      <div className="space-y-2">
+                        {/* Category filter */}
+                        <div className="flex items-center gap-1 overflow-x-auto pb-1 hide-scrollbar">
+                          {['Semua', 'Dewan Asatidz (Ustadz)', 'Dewan Asatidzah (Ustadzah)', 'Santri Putra', 'Santri Putri (Santriwati)', 'Wali Santri & Pimpinan'].map((cat) => (
+                            <button
+                              key={cat}
+                              type="button"
+                              onClick={() => setSelectedPresetCategory(cat)}
+                              className={`px-2 py-0.5 rounded-lg text-[9px] font-bold whitespace-nowrap cursor-pointer transition-all ${
+                                selectedPresetCategory === cat
+                                  ? 'bg-emerald-700 text-white'
+                                  : 'bg-white text-slate-600 hover:bg-slate-200'
+                              }`}
+                            >
+                              {cat === 'Semua' ? 'Semua' : cat.split(' ')[0]}
+                            </button>
+                          ))}
+                        </div>
+
+                        {/* Presets Grid */}
+                        <div className="grid grid-cols-5 gap-1.5 max-h-28 overflow-y-auto p-1 bg-white rounded-xl border border-slate-200">
+                          {AVATAR_PRESETS.filter((group) =>
+                            selectedPresetCategory === 'Semua' ? true : group.category === selectedPresetCategory
+                          ).flatMap((group) => group.items).map((item, idx) => (
+                            <button
+                              key={idx}
+                              type="button"
+                              onClick={() => {
+                                playTapSound();
+                                setUserFormData((prev) => ({ ...prev, avatarUrl: item.url }));
+                              }}
+                              className={`relative group rounded-xl overflow-hidden aspect-square border-2 transition-all cursor-pointer ${
+                                userFormData.avatarUrl === item.url
+                                  ? 'border-emerald-600 ring-2 ring-emerald-400/50'
+                                  : 'border-transparent hover:border-slate-300'
+                              }`}
+                              title={item.label}
+                            >
+                              <img
+                                src={item.url}
+                                alt={item.label}
+                                className="w-full h-full object-cover"
+                                referrerPolicy="no-referrer"
+                              />
+                              {userFormData.avatarUrl === item.url && (
+                                <div className="absolute inset-0 bg-emerald-600/30 flex items-center justify-center text-white">
+                                  <Check className="w-3.5 h-3.5 drop-shadow" />
+                                </div>
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Mode 2: Upload File */}
+                    {photoPickerMode === 'upload' && (
+                      <div className="space-y-1.5">
+                        <input
+                          ref={formFileInputRef}
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              processImageFile(file, (dataUrl) => {
+                                setUserFormData((prev) => ({ ...prev, avatarUrl: dataUrl }));
+                              });
+                            }
+                          }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => formFileInputRef.current?.click()}
+                          className="w-full py-2 px-3 border border-dashed border-emerald-400 hover:border-emerald-600 bg-emerald-50/50 hover:bg-emerald-50 text-emerald-800 rounded-xl text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-all"
+                        >
+                          <Upload className="w-3.5 h-3.5" />
+                          <span>Pilih Foto dari Galeri / Kamera</span>
+                        </button>
+                        <p className="text-[10px] text-slate-400 text-center">
+                          Format JPG/PNG/WebP otomatis dikompresi untuk performa optimal.
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Mode 3: Custom URL */}
+                    {photoPickerMode === 'url' && (
+                      <div className="flex items-center gap-1.5">
+                        <input
+                          type="url"
+                          placeholder="https://images.unsplash.com/..."
+                          value={customPhotoUrlInput}
+                          onChange={(e) => setCustomPhotoUrlInput(e.target.value)}
+                          className="flex-1 text-xs p-2 bg-white border border-slate-300 rounded-xl focus:outline-emerald-600"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (customPhotoUrlInput.trim()) {
+                              setUserFormData((prev) => ({ ...prev, avatarUrl: customPhotoUrlInput.trim() }));
+                              showToast('✅ Link URL foto diterapkan!');
+                            }
+                          }}
+                          className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold cursor-pointer"
+                        >
+                          Terapkan
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Form Inputs */}
               <div>
                 <label className="text-xs font-bold text-slate-700 block mb-1">Nama Lengkap</label>
                 <input
@@ -911,14 +1266,14 @@ export const HakAksesSettingsModal: React.FC<HakAksesSettingsModalProps> = ({
 
               <div className="grid grid-cols-2 gap-2.5">
                 <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">Username</label>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Username Login</label>
                   <input
                     type="text"
                     required
                     placeholder="cth: guru_fauzi"
                     value={userFormData.username || ''}
                     onChange={(e) => setUserFormData({ ...userFormData, username: e.target.value })}
-                    className="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:outline-emerald-600"
+                    className="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:outline-emerald-600 font-mono"
                   />
                 </div>
 
@@ -957,7 +1312,7 @@ export const HakAksesSettingsModal: React.FC<HakAksesSettingsModalProps> = ({
                     placeholder="cth: 2024001"
                     value={userFormData.identifier || ''}
                     onChange={(e) => setUserFormData({ ...userFormData, identifier: e.target.value })}
-                    className="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:outline-emerald-600"
+                    className="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:outline-emerald-600 font-mono"
                   />
                 </div>
               </div>
@@ -980,26 +1335,152 @@ export const HakAksesSettingsModal: React.FC<HakAksesSettingsModalProps> = ({
                   placeholder="cth: 081234567890"
                   value={userFormData.noWa || ''}
                   onChange={(e) => setUserFormData({ ...userFormData, noWa: e.target.value })}
-                  className="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:outline-emerald-600"
+                  className="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:outline-emerald-600 font-mono"
                 />
               </div>
 
-              <div className="pt-2 flex items-center justify-end gap-2">
+              <div className="pt-2 flex items-center justify-end gap-2 shrink-0 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setIsUserFormOpen(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100"
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 cursor-pointer"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl text-xs font-black bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs"
+                  className="px-4 py-2 rounded-xl text-xs font-black bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs cursor-pointer flex items-center gap-1.5"
                 >
-                  Simpan Akun
+                  <Save className="w-3.5 h-3.5" />
+                  <span>Simpan Akun</span>
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* SUB-MODAL: Quick Photo Change Modal */}
+      {quickPhotoUser && (
+        <div className="fixed inset-0 z-60 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-3">
+          <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-slate-200 overflow-hidden animate-in zoom-in-95 duration-150 flex flex-col">
+            <div className="bg-gradient-to-r from-emerald-800 to-teal-700 p-4 text-white flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-amber-400 text-emerald-950 flex items-center justify-center font-bold">
+                  <Camera className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="font-black text-sm">Ganti Foto Profil Akun</h3>
+                  <p className="text-[11px] text-emerald-100 truncate max-w-[200px]">
+                    {quickPhotoUser.fullName} (@{quickPhotoUser.username})
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setQuickPhotoUser(null)}
+                className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-4 sm:p-5 space-y-4">
+              {/* Photo Big Preview */}
+              <div className="flex flex-col items-center justify-center gap-2">
+                <div className="w-24 h-24 rounded-3xl bg-slate-100 border-4 border-emerald-500/40 shadow-md overflow-hidden">
+                  <img
+                    src={quickPhotoUrl}
+                    alt={quickPhotoUser.fullName}
+                    className="w-full h-full object-cover"
+                    referrerPolicy="no-referrer"
+                  />
+                </div>
+                <span className="text-xs font-bold text-slate-700">{quickPhotoUser.fullName}</span>
+              </div>
+
+              {/* Upload Action */}
+              <input
+                ref={quickFileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    processImageFile(file, (dataUrl) => {
+                      setQuickPhotoUrl(dataUrl);
+                    });
+                  }
+                }}
+              />
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => quickFileInputRef.current?.click()}
+                  className="flex-1 py-2 px-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all"
+                >
+                  <Upload className="w-3.5 h-3.5" />
+                  <span>Unggah dari Galeri / Kamera</span>
+                </button>
+              </div>
+
+              {/* Quick Presets Selection */}
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold text-slate-600 block">
+                  Atau Pilih Avatar Siap Pakai:
+                </label>
+                <div className="grid grid-cols-5 gap-2 max-h-36 overflow-y-auto p-1.5 bg-slate-50 rounded-2xl border border-slate-200">
+                  {AVATAR_PRESETS.flatMap((g) => g.items).map((item, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => {
+                        playTapSound();
+                        setQuickPhotoUrl(item.url);
+                      }}
+                      className={`relative group rounded-xl overflow-hidden aspect-square border-2 transition-all cursor-pointer ${
+                        quickPhotoUrl === item.url
+                          ? 'border-emerald-600 ring-2 ring-emerald-400/50 scale-95'
+                          : 'border-transparent hover:border-slate-300'
+                      }`}
+                      title={item.label}
+                    >
+                      <img
+                        src={item.url}
+                        alt={item.label}
+                        className="w-full h-full object-cover"
+                        referrerPolicy="no-referrer"
+                      />
+                      {quickPhotoUrl === item.url && (
+                        <div className="absolute inset-0 bg-emerald-600/30 flex items-center justify-center text-white">
+                          <Check className="w-3.5 h-3.5 drop-shadow" />
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="pt-2 flex items-center justify-end gap-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setQuickPhotoUser(null)}
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSaveQuickPhoto(quickPhotoUrl)}
+                  className="px-4 py-2 rounded-xl text-xs font-black bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs cursor-pointer flex items-center gap-1.5"
+                >
+                  <Check className="w-3.5 h-3.5" />
+                  <span>Simpan Foto</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
