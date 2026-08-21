@@ -796,7 +796,13 @@ export default function App() {
               {/* 18 Individual Madrasah Views */}
               {activeTab === '1_daftar_hadir' && <DaftarHadirView activeRole={activeRole} />}
               {activeTab === '2_biodata' && <BiodataView activeRole={activeRole} />}
-              {activeTab === '3_kopas' && <KopasView activeRole={activeRole} />}
+              {activeTab === '3_kopas' && (
+                <KopasView 
+                  activeRole={activeRole} 
+                  currentUser={authSession?.user}
+                  student={student}
+                />
+              )}
               {activeTab === '4_dokumentasi' && <DokumentasiView activeRole={activeRole} />}
               {activeTab === '5_raport' && <RaportView activeRole={activeRole} />}
               {activeTab === '6_jadwal_seragam_mapel' && <JadwalSeragamMapelView activeRole={activeRole} />}

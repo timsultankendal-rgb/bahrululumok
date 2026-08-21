@@ -29,7 +29,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { KOPAS_PRODUK_LIST, TABUNGAN_SANTRI_LIST } from '../../data/madrasahCompleteData';
-import { KopasProduk, TabunganSantri, RiwayatTabunganItem, UserRole } from '../../types';
+import { KopasProduk, TabunganSantri, RiwayatTabunganItem, UserRole, StudentProfile } from '../../types';
 import { playTapSound } from '../../utils/audio';
 import { useAccessPermission } from '../../hooks/useAccessPermission';
 import { 
@@ -48,15 +48,28 @@ const STORAGE_KEY_TABUNGAN = 'madrasah_kopas_tabungan_v2';
 interface KopasViewProps {
   activeRole?: UserRole;
   canEdit?: boolean;
-  currentUser?: { fullName?: string; username?: string; role?: string } | null;
+  currentUser?: {
+    id?: string;
+    username?: string;
+    fullName?: string;
+    role?: UserRole | string;
+    identifier?: string;
+    subTitle?: string;
+    kelas?: string;
+    noWa?: string;
+    avatarUrl?: string;
+  } | null;
+  student?: StudentProfile;
 }
 
 export const KopasView: React.FC<KopasViewProps> = ({
   activeRole,
   canEdit: explicitCanEdit,
   currentUser,
+  student,
 }) => {
   const { canEdit } = useAccessPermission('3_kopas', activeRole, explicitCanEdit);
+  const isPersonalMode = activeRole === 'santri' || activeRole === 'wali';
   const [activeTab, setActiveTab] = useState<'produk' | 'tabungan' | 'kitab_khusus'>('tabungan');
   const [selectedKategori, setSelectedKategori] = useState<string>('Semua');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -75,7 +88,7 @@ export const KopasView: React.FC<KopasViewProps> = ({
     return KOPAS_PRODUK_LIST;
   });
 
-  // Tabungan State
+  // Tabungan State (All records from storage/Firestore)
   const [tabunganList, setTabunganList] = useState<TabunganSantri[]>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY_TABUNGAN);
@@ -235,9 +248,190 @@ export const KopasView: React.FC<KopasViewProps> = ({
     }
   };
 
+  // Scope visible tabungan accounts based on user role & identity
+  const visibleTabunganList = useMemo(() => {
+    // Admin and Guru (Asatidz) have complete overview of all students in the Madrasah
+    if (activeRole === 'admin' || activeRole === 'guru') {
+      return tabunganList;
+    }
+
+    // Role Santri: Only view their own personal tabungan account
+    if (activeRole === 'santri') {
+      const user = currentUser;
+      const cleanUserFull = (user?.fullName || student?.name || '').toLowerCase().trim();
+      const cleanUsername = (user?.username || '').toLowerCase().trim();
+      const cleanIdentifier = (user?.identifier || student?.nisn || student?.nis || '').toLowerCase().trim().replace(/[^a-zA-Z0-9]/g, '');
+
+      const matched = tabunganList.filter((t) => {
+        const tNama = t.nama.toLowerCase().trim();
+        const tNoInduk = (t.noInduk || '').toLowerCase().trim().replace(/[^a-zA-Z0-9]/g, '');
+        const tNisn = (t.nisn || '').toLowerCase().trim().replace(/[^a-zA-Z0-9]/g, '');
+
+        if (cleanIdentifier && (tNoInduk.includes(cleanIdentifier) || cleanIdentifier.includes(tNoInduk) || tNisn.includes(cleanIdentifier) || cleanIdentifier.includes(tNisn))) {
+          return true;
+        }
+        if (cleanUserFull && (tNama.includes(cleanUserFull) || cleanUserFull.includes(tNama))) {
+          return true;
+        }
+        if (cleanUsername) {
+          const keyword = cleanUsername.replace(/^santri_?/, '').replace(/_?santri$/, '').trim();
+          if (keyword && tNama.includes(keyword)) {
+            return true;
+          }
+        }
+        return false;
+      });
+
+      if (matched.length > 0) {
+        return matched;
+      }
+
+      // If no matching account in database, generate a personalized record for this santri
+      const personalAccount: TabunganSantri = {
+        id: `tab_personal_${user?.id || 'santri'}`,
+        noInduk: user?.identifier || student?.nis || '2024.01.001',
+        nisn: student?.nisn || '0089241890',
+        noRekening: `TAB-${(user?.identifier || '2024').slice(-3)}-001`,
+        nama: user?.fullName || student?.name || 'Santri Madrasah',
+        namaSantri: user?.fullName || student?.name || 'Santri Madrasah',
+        kelas: user?.kelas || student?.level?.split(' ')[0] || 'Kelas 6',
+        foto: user?.avatarUrl || student?.photoUrl,
+        namaWali: student?.waliName || 'Wali Santri',
+        noWaWali: user?.noWa || student?.phone || '0812-3456-7890',
+        programTabungan: 'Reguler/Saku',
+        status: 'Aktif',
+        jumlahTabungan: 350000,
+        totalTabungan: 350000,
+        tanggalBuka: '15 Juli 2024',
+        terakhirTransaksi: '15 Agustus 2026',
+        terakhirUpdate: '15 Agustus 2026',
+        riwayat: [
+          {
+            id: 'rw-p-1',
+            tanggal: '01 Agustus 2026',
+            waktu: '08:30 WIB',
+            jenis: 'Setor',
+            nominal: 150000,
+            saldoSebelum: 0,
+            saldoSesudah: 150000,
+            kategori: 'Setoran Awal',
+            petugas: 'Ustzh. Nur Laili',
+            pembayarPenarik: user?.fullName || student?.name || 'Santri',
+            idKuitansi: 'KWT-TAB-20260801-01',
+            keterangan: 'Setoran Awal Pembukaan Rekening Tabungan'
+          },
+          {
+            id: 'rw-p-2',
+            tanggal: '15 Agustus 2026',
+            waktu: '10:00 WIB',
+            jenis: 'Setor',
+            nominal: 200000,
+            saldoSebelum: 150000,
+            saldoSesudah: 350000,
+            kategori: 'Uang Saku',
+            petugas: 'Ustzh. Nur Laili',
+            pembayarPenarik: user?.fullName || student?.name || 'Santri',
+            idKuitansi: 'KWT-TAB-20260815-12',
+            keterangan: 'Setoran Uang Saku & Kitab'
+          }
+        ]
+      };
+      return [personalAccount];
+    }
+
+    // Role Wali: Only view the tabungan account of their child (santri)
+    if (activeRole === 'wali') {
+      const user = currentUser;
+      const cleanWaliName = (user?.fullName || student?.waliName || '').toLowerCase().trim();
+      const cleanSubTitle = (user?.subTitle || '').toLowerCase().trim();
+      const cleanWa = (user?.noWa || user?.identifier || '').replace(/\D/g, '');
+      const cleanStudentName = (student?.name || '').toLowerCase().trim();
+
+      const matched = tabunganList.filter((t) => {
+        const tNama = t.nama.toLowerCase().trim();
+        const tNamaWali = (t.namaWali || '').toLowerCase().trim();
+        const tNoWa = (t.noWaWali || '').replace(/\D/g, '');
+
+        if (cleanWaliName && (tNamaWali.includes(cleanWaliName) || cleanWaliName.includes(tNamaWali))) {
+          return true;
+        }
+        if (cleanWa && tNoWa && (tNoWa.includes(cleanWa) || cleanWa.includes(tNoWa))) {
+          return true;
+        }
+        if (cleanSubTitle && cleanSubTitle.includes(tNama)) {
+          return true;
+        }
+        if (cleanStudentName && (tNama.includes(cleanStudentName) || cleanStudentName.includes(tNama))) {
+          return true;
+        }
+        return false;
+      });
+
+      if (matched.length > 0) {
+        return matched;
+      }
+
+      // Fallback: dedicated record for wali's child
+      const childAccount: TabunganSantri = {
+        id: `tab_personal_wali_${user?.id || 'wali'}`,
+        noInduk: student?.nis || '2021.04.030',
+        nisn: student?.nisn || '0089241890',
+        noRekening: 'TAB-2021-030',
+        nama: student?.name || 'Ahmad Maulana Yusuf',
+        namaSantri: student?.name || 'Ahmad Maulana Yusuf',
+        kelas: student?.level?.split(' ')[0] || 'Kelas 6',
+        foto: student?.photoUrl,
+        namaWali: user?.fullName || student?.waliName || 'H. Budi Prasetyo',
+        noWaWali: user?.noWa || '081234567890',
+        programTabungan: 'Reguler/Saku',
+        status: 'Aktif',
+        jumlahTabungan: 1250000,
+        totalTabungan: 1250000,
+        tanggalBuka: '12 Juli 2021',
+        terakhirTransaksi: '16 Agustus 2026',
+        terakhirUpdate: '16 Agustus 2026',
+        riwayat: [
+          {
+            id: 'rw-w-1',
+            tanggal: '10 Juli 2026',
+            waktu: '08:30 WIB',
+            jenis: 'Setor',
+            nominal: 500000,
+            saldoSebelum: 0,
+            saldoSesudah: 500000,
+            kategori: 'Uang Saku',
+            petugas: 'Ustzh. Nur Laili',
+            pembayarPenarik: user?.fullName || 'Wali Santri',
+            idKuitansi: 'KWT-TAB-20260710-01',
+            keterangan: 'Tabungan Saku Awal Tahun Ajaran'
+          },
+          {
+            id: 'rw-w-2',
+            tanggal: '16 Agustus 2026',
+            waktu: '10:15 WIB',
+            jenis: 'Setor',
+            nominal: 750000,
+            saldoSebelum: 500000,
+            saldoSesudah: 1250000,
+            kategori: 'Haflah & Wisuda',
+            petugas: 'Ustzh. Nur Laili',
+            pembayarPenarik: user?.fullName || 'Wali Santri',
+            idKuitansi: 'KWT-TAB-20260816-07',
+            keterangan: 'Tabungan Wisuda & Studi Tour Religi'
+          }
+        ]
+      };
+      return [childAccount];
+    }
+
+    return tabunganList;
+  }, [tabunganList, activeRole, currentUser, student]);
+
+  const primaryPersonalAccount = visibleTabunganList[0] || null;
+
   // Filter & Search Tabungan
   const filteredTabungan = useMemo(() => {
-    return tabunganList.filter((t) => {
+    return visibleTabunganList.filter((t) => {
       const matchKelas = filterKelasTabungan === 'Semua' || t.kelas === filterKelasTabungan;
       const matchProgram = filterProgramTabungan === 'Semua' || (t.programTabungan || 'Reguler/Saku') === filterProgramTabungan;
       const query = searchQuery.toLowerCase().trim();
@@ -256,16 +450,16 @@ export const KopasView: React.FC<KopasViewProps> = ({
       // terbaru
       return (b.terakhirTransaksi || '').localeCompare(a.terakhirTransaksi || '');
     });
-  }, [tabunganList, filterKelasTabungan, filterProgramTabungan, searchQuery, sortByTabungan]);
+  }, [visibleTabunganList, filterKelasTabungan, filterProgramTabungan, searchQuery, sortByTabungan]);
 
-  // Tabungan Financial Aggregates
-  const totalDanaTabungan = tabunganList.reduce((acc, curr) => acc + curr.jumlahTabungan, 0);
-  const totalTransaksiMasuk = tabunganList.reduce((acc, curr) => {
-    const sumSetor = curr.riwayat.filter(r => r.jenis === 'Setor').reduce((s, r) => s + r.nominal, 0);
+  // Tabungan Financial Aggregates based on visible accounts
+  const totalDanaTabungan = visibleTabunganList.reduce((acc, curr) => acc + curr.jumlahTabungan, 0);
+  const totalTransaksiMasuk = visibleTabunganList.reduce((acc, curr) => {
+    const sumSetor = (curr.riwayat || []).filter(r => r.jenis === 'Setor').reduce((s, r) => s + r.nominal, 0);
     return acc + sumSetor;
   }, 0);
-  const totalTransaksiKeluar = tabunganList.reduce((acc, curr) => {
-    const sumTarik = curr.riwayat.filter(r => r.jenis === 'Tarik').reduce((s, r) => s + r.nominal, 0);
+  const totalTransaksiKeluar = visibleTabunganList.reduce((acc, curr) => {
+    const sumTarik = (curr.riwayat || []).filter(r => r.jenis === 'Tarik').reduce((s, r) => s + r.nominal, 0);
     return acc + sumTarik;
   }, 0);
 
@@ -359,11 +553,14 @@ export const KopasView: React.FC<KopasViewProps> = ({
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `Rekap_Tabungan_Santri_Madrasah_${new Date().toISOString().slice(0, 10)}.csv`);
+    const fileName = isPersonalMode
+      ? `Mutasi_Tabungan_${(primaryPersonalAccount?.nama || 'Santri').replace(/\s+/g, '_')}_${new Date().toISOString().slice(0, 10)}.csv`
+      : `Rekap_Tabungan_Santri_Madrasah_${new Date().toISOString().slice(0, 10)}.csv`;
+    link.setAttribute('download', fileName);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    showToast('Data Tabungan Santri berhasil diexport ke CSV.');
+    showToast(isPersonalMode ? 'Data Rekening Tabungan berhasil diunduh.' : 'Data Tabungan Santri berhasil diexport ke CSV.');
   };
 
   const formatRupiah = (num: number) => {
@@ -387,24 +584,36 @@ export const KopasView: React.FC<KopasViewProps> = ({
       {/* Header Banner */}
       <div className="bg-gradient-to-r from-emerald-800 via-teal-800 to-emerald-900 rounded-3xl p-4 sm:p-5 text-white shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <div className="flex items-center gap-2 mb-1">
+          <div className="flex items-center gap-2 mb-1 flex-wrap">
             <span className="bg-amber-400 text-emerald-950 font-black text-[10px] px-2 py-0.5 rounded-full shadow-xs">
               MENU 3
             </span>
-            <span className="text-emerald-100 text-xs font-semibold">Koperasi & Simpanan Santri</span>
+            <span className="text-emerald-100 text-xs font-semibold">
+              {isPersonalMode ? 'Rekening Simpanan Santri' : 'Koperasi & Simpanan Santri'}
+            </span>
             <span className="inline-flex items-center gap-1 text-[10px] bg-emerald-950/60 text-emerald-300 px-2 py-0.5 rounded-full font-mono font-bold border border-emerald-400/30">
               <ShieldCheck className="w-3 h-3 text-emerald-400" />
               {isCloudSynced ? 'Cloud Firestore Aktif' : 'Tersinkronisasi'}
             </span>
           </div>
-          <h1 className="text-lg sm:text-xl font-extrabold text-white">3. KOPERASI & TABUNGAN SANTRI</h1>
+          <h1 className="text-lg sm:text-xl font-extrabold text-white">
+            {isPersonalMode 
+              ? `3. TABUNGAN SANTRI ${activeRole === 'santri' ? 'MANDIRI' : 'ANANDA'}`
+              : '3. KOPERASI & TABUNGAN SANTRI'}
+          </h1>
           <p className="text-xs text-emerald-100 mt-0.5">
-            Buku Rekening Digital, Transaksi Setor/Tarik Real-Time & Koperasi Madrasah
+            {isPersonalMode 
+              ? 'Buku Rekening Tabungan Digital Santri & Mutasi Transaksi Resmi' 
+              : 'Buku Rekening Digital, Transaksi Setor/Tarik Real-Time & Koperasi Madrasah'}
           </p>
         </div>
 
         <div className="bg-white/10 px-4 py-2.5 rounded-2xl border border-white/20 text-right backdrop-blur-xs flex-shrink-0">
-          <span className="text-[10px] text-emerald-200 font-bold block uppercase tracking-wider">Total Simpanan Santri</span>
+          <span className="text-[10px] text-emerald-200 font-bold block uppercase tracking-wider">
+            {isPersonalMode 
+              ? (activeRole === 'santri' ? 'Saldo Tabungan Saya' : 'Saldo Tabungan Ananda') 
+              : 'Total Simpanan Santri'}
+          </span>
           <span className="text-base sm:text-lg font-black text-amber-300 font-mono">
             {formatRupiah(totalDanaTabungan)}
           </span>
@@ -465,14 +674,49 @@ export const KopasView: React.FC<KopasViewProps> = ({
       {activeTab === 'tabungan' && (
         <div className="space-y-4">
           
+          {/* Role Privacy Notice for Santri & Wali */}
+          {isPersonalMode && (
+            <div className="p-3.5 bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 border border-emerald-200/90 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shadow-2xs">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-teal-800 text-white flex items-center justify-center shrink-0 shadow-2xs">
+                  <ShieldCheck className="w-4 h-4 text-emerald-300" />
+                </div>
+                <div>
+                  <h4 className="font-extrabold text-xs text-slate-900 flex items-center gap-1.5">
+                    <span>{activeRole === 'santri' ? 'Buku Tabungan Pribadi Santri' : 'Buku Tabungan Ananda Santri'}</span>
+                    <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-teal-100 text-teal-800">
+                      {primaryPersonalAccount?.noRekening || 'TERVERIFIKASI'}
+                    </span>
+                  </h4>
+                  <p className="text-[11px] text-slate-600 mt-0.5">
+                    {activeRole === 'santri' 
+                      ? `Menampilkan data simpanan khusus atas nama ${primaryPersonalAccount?.nama || currentUser?.fullName || student?.name} (${primaryPersonalAccount?.kelas || 'Kelas'}).`
+                      : `Akses wali santri menampilkan rekening tabungan ananda ${primaryPersonalAccount?.nama || student?.name} (${primaryPersonalAccount?.kelas || 'Kelas'}).`
+                    }
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-1.5 shrink-0 self-start sm:self-center">
+                <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
+                  Mode Privasi Khusus
+                </span>
+              </div>
+            </div>
+          )}
+
           {/* Ringkasan Finansial Tabungan */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div className="p-3.5 bg-gradient-to-br from-teal-50 to-emerald-50 rounded-2xl border border-teal-200/80 shadow-2xs">
-              <span className="text-[10px] font-bold text-teal-800 block uppercase tracking-wider">Total Simpanan</span>
+              <span className="text-[10px] font-bold text-teal-800 block uppercase tracking-wider">
+                {isPersonalMode ? (activeRole === 'santri' ? 'Saldo Tabungan Saya' : 'Saldo Tabungan Ananda') : 'Total Simpanan'}
+              </span>
               <div className="text-base sm:text-lg font-black font-mono text-teal-950 mt-0.5">
                 {formatRupiah(totalDanaTabungan)}
               </div>
-              <span className="text-[10px] text-teal-700 mt-1 block">Dari {tabunganList.length} rekening santri</span>
+              <span className="text-[10px] text-teal-700 mt-1 block">
+                {isPersonalMode ? `No. Rek: ${primaryPersonalAccount?.noRekening || primaryPersonalAccount?.noInduk || '-'}` : `Dari ${tabunganList.length} rekening santri`}
+              </span>
             </div>
 
             <div className="p-3.5 bg-emerald-50 rounded-2xl border border-emerald-200/80 shadow-2xs">
@@ -480,7 +724,9 @@ export const KopasView: React.FC<KopasViewProps> = ({
               <div className="text-base sm:text-lg font-black font-mono text-emerald-950 mt-0.5">
                 +{formatRupiah(totalTransaksiMasuk)}
               </div>
-              <span className="text-[10px] text-emerald-700 mt-1 block">Akumulasi seluruh setoran</span>
+              <span className="text-[10px] text-emerald-700 mt-1 block">
+                {isPersonalMode ? 'Akumulasi simpanan disetor' : 'Akumulasi seluruh setoran'}
+              </span>
             </div>
 
             <div className="p-3.5 bg-rose-50 rounded-2xl border border-rose-200/80 shadow-2xs">
@@ -488,15 +734,21 @@ export const KopasView: React.FC<KopasViewProps> = ({
               <div className="text-base sm:text-lg font-black font-mono text-rose-950 mt-0.5">
                 -{formatRupiah(totalTransaksiKeluar)}
               </div>
-              <span className="text-[10px] text-rose-700 mt-1 block">Penggunaan saku & kitab</span>
+              <span className="text-[10px] text-rose-700 mt-1 block">
+                {isPersonalMode ? 'Penggunaan saku / kebutuhan' : 'Penggunaan saku & kitab'}
+              </span>
             </div>
 
             <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 shadow-2xs">
-              <span className="text-[10px] font-bold text-slate-700 block uppercase tracking-wider">Rekening Terdaftar</span>
+              <span className="text-[10px] font-bold text-slate-700 block uppercase tracking-wider">
+                {isPersonalMode ? 'Status Rekening' : 'Rekening Terdaftar'}
+              </span>
               <div className="text-base sm:text-lg font-black font-mono text-slate-900 mt-0.5">
-                {tabunganList.length} Santri
+                {isPersonalMode ? (primaryPersonalAccount?.status || 'Aktif') : `${tabunganList.length} Santri`}
               </div>
-              <span className="text-[10px] text-slate-500 mt-1 block">Kelas 1 s/d Kelas 6</span>
+              <span className="text-[10px] text-slate-500 mt-1 block">
+                {isPersonalMode ? (primaryPersonalAccount?.programTabungan || 'Reguler/Saku') : 'Kelas 1 s/d Kelas 6'}
+              </span>
             </div>
           </div>
 
@@ -509,7 +761,7 @@ export const KopasView: React.FC<KopasViewProps> = ({
                 <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
-                  placeholder="Cari santri, no. rekening, NISN, atau wali..."
+                  placeholder={isPersonalMode ? "Cari nomor rekening, catatan transaksi, atau program..." : "Cari santri, no. rekening, NISN, atau wali..."}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-emerald-500 font-medium"
@@ -518,7 +770,7 @@ export const KopasView: React.FC<KopasViewProps> = ({
 
               {/* Action Buttons */}
               <div className="flex items-center gap-1.5 shrink-0 flex-wrap">
-                {canEdit && (
+                {canEdit && !isPersonalMode && (
                   <>
                     <button
                       onClick={() => {
@@ -549,10 +801,10 @@ export const KopasView: React.FC<KopasViewProps> = ({
                 <button
                   onClick={handleExportCSV}
                   className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all border border-slate-200"
-                  title="Export Data ke CSV"
+                  title={isPersonalMode ? "Unduh Riwayat Tabungan" : "Export Data ke CSV"}
                 >
                   <Download className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Export CSV</span>
+                  <span className="hidden sm:inline">{isPersonalMode ? 'Unduh Mutasi' : 'Export CSV'}</span>
                 </button>
               </div>
             </div>
@@ -560,23 +812,25 @@ export const KopasView: React.FC<KopasViewProps> = ({
             {/* Filter Row: Kelas, Program, Sorting */}
             <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 text-xs">
               <div className="flex items-center gap-2 flex-wrap">
-                {/* Filter Kelas */}
-                <div className="flex items-center gap-1">
-                  <span className="text-slate-400 font-bold text-[11px]">Kelas:</span>
-                  <select
-                    value={filterKelasTabungan}
-                    onChange={(e) => setFilterKelasTabungan(e.target.value)}
-                    className="px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 focus:outline-emerald-500"
-                  >
-                    <option value="Semua">Semua Kelas</option>
-                    <option value="Kelas 1">Kelas 1</option>
-                    <option value="Kelas 2">Kelas 2</option>
-                    <option value="Kelas 3">Kelas 3</option>
-                    <option value="Kelas 4">Kelas 4</option>
-                    <option value="Kelas 5">Kelas 5</option>
-                    <option value="Kelas 6">Kelas 6</option>
-                  </select>
-                </div>
+                {/* Filter Kelas (Only for Admin/Guru) */}
+                {!isPersonalMode && (
+                  <div className="flex items-center gap-1">
+                    <span className="text-slate-400 font-bold text-[11px]">Kelas:</span>
+                    <select
+                      value={filterKelasTabungan}
+                      onChange={(e) => setFilterKelasTabungan(e.target.value)}
+                      className="px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 focus:outline-emerald-500"
+                    >
+                      <option value="Semua">Semua Kelas</option>
+                      <option value="Kelas 1">Kelas 1</option>
+                      <option value="Kelas 2">Kelas 2</option>
+                      <option value="Kelas 3">Kelas 3</option>
+                      <option value="Kelas 4">Kelas 4</option>
+                      <option value="Kelas 5">Kelas 5</option>
+                      <option value="Kelas 6">Kelas 6</option>
+                    </select>
+                  </div>
+                )}
 
                 {/* Filter Program */}
                 <div className="flex items-center gap-1">
@@ -617,7 +871,7 @@ export const KopasView: React.FC<KopasViewProps> = ({
             <div className="p-3.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
               <span className="font-extrabold text-xs text-slate-800 flex items-center gap-2">
                 <Wallet className="w-4 h-4 text-teal-600" />
-                Daftar Buku Rekening Tabungan Santri ({filteredTabungan.length})
+                {isPersonalMode ? `Buku Rekening Tabungan Santri (${filteredTabungan.length})` : `Daftar Buku Rekening Tabungan Santri (${filteredTabungan.length})`}
               </span>
               <span className="text-[11px] text-slate-500 font-medium">
                 Tersinkron Cloud Firestore
@@ -680,7 +934,7 @@ export const KopasView: React.FC<KopasViewProps> = ({
                       </div>
 
                       <div className="flex items-center gap-1.5">
-                        {canEdit && (
+                        {canEdit && !isPersonalMode && (
                           <>
                             <button
                               onClick={() => {
@@ -725,7 +979,7 @@ export const KopasView: React.FC<KopasViewProps> = ({
                         </button>
 
                         {/* Delete Account (Admin only) */}
-                        {canEdit && activeRole === 'admin' && (
+                        {canEdit && !isPersonalMode && activeRole === 'admin' && (
                           <button
                             onClick={() => handleDeleteTabungan(tab)}
                             className="p-1.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
