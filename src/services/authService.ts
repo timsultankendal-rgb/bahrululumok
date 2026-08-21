@@ -303,14 +303,15 @@ export interface LoginResult {
 export function authenticateUser(
   usernameOrIdentifier: string,
   passwordOrPin: string,
-  rememberMe: boolean = true
+  rememberMe: boolean = true,
+  expectedRole?: UserRole
 ): LoginResult {
   const cleanInput = usernameOrIdentifier.trim().toLowerCase();
   const cleanPass = passwordOrPin.trim();
 
   const users = getLocalUserAccounts();
   const matchedUser = users.find((u) => {
-    const matchUsername = u.username.toLowerCase() === cleanInput;
+    const matchUsername = u.username && u.username.toLowerCase() === cleanInput;
     const matchIdentifier =
       u.identifier && u.identifier.toLowerCase() === cleanInput;
     const matchWa = u.noWa && u.noWa.replace(/\D/g, '') === cleanInput.replace(/\D/g, '');
@@ -320,7 +321,21 @@ export function authenticateUser(
   if (!matchedUser) {
     return {
       success: false,
-      message: 'Username, No Induk (NIS/NIY), atau No WA tidak terdaftar di sistem madrasah.',
+      message: 'Username, No Induk (NIS/NIY), atau No WhatsApp tidak terdaftar di sistem madrasah.',
+    };
+  }
+
+  // If user selected a specific role in the login UI, verify it matches
+  if (expectedRole && matchedUser.role !== expectedRole) {
+    const roleLabels: Record<UserRole, string> = {
+      admin: 'Administrator (TU)',
+      guru: 'Dewan Asatidz',
+      wali: 'Wali Santri',
+      santri: 'Santri / Murid',
+    };
+    return {
+      success: false,
+      message: `Akun "${usernameOrIdentifier}" terdaftar dengan peran ${roleLabels[matchedUser.role]}, bukan ${roleLabels[expectedRole]}. Silakan pilih tab ${roleLabels[matchedUser.role]} untuk login.`,
     };
   }
 
@@ -331,12 +346,12 @@ export function authenticateUser(
     };
   }
 
-  // Check password
-  const validPassword = matchedUser.password || '123456';
-  if (cleanPass !== validPassword && cleanPass !== '123456' && cleanPass !== 'admin123') {
+  // Strict check password: MUST match the exact password configured in settings for this user!
+  const configuredPassword = matchedUser.password || '123456';
+  if (cleanPass !== configuredPassword) {
     return {
       success: false,
-      message: 'Password atau PIN yang Anda masukkan salah. Coba lagi atau gunakan PIN Standar (123456).',
+      message: 'Password atau PIN yang Anda masukkan salah. Silakan masukkan password yang sesuai dengan pengaturan akun Anda.',
     };
   }
 

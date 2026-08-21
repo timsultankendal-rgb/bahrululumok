@@ -672,6 +672,7 @@ export default function App() {
       unreadNotifications={unreadNotifications}
       branding={branding}
       onOpenBrandingSettings={() => setIsBrandingModalOpen(true)}
+      onOpenLogin={(role) => handleNavigateToLogin(role)}
     >
       {/* Left Navigation Sidebar (Menu Tampilan Sisi Kiri dengan 18 Menu) */}
       <LeftSidebar
@@ -685,7 +686,7 @@ export default function App() {
         onOpenIdCard={() => setIsIdCardOpen(true)}
         branding={branding}
         onOpenBrandingSettings={() => setIsBrandingModalOpen(true)}
-        onOpenLogin={() => handleNavigateToLogin()}
+        onOpenLogin={(role) => handleNavigateToLogin(role)}
         onOpenHakAkses={() => setIsHakAksesOpen(true)}
         onNavigateToHome={() => navigateTo('website')}
         onLogout={handleLogout}
@@ -703,7 +704,7 @@ export default function App() {
           onOpenIdCard={() => setIsIdCardOpen(true)}
           onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
           onChangeRole={setActiveRole}
-          onOpenLogin={() => handleNavigateToLogin()}
+          onOpenLogin={(role) => handleNavigateToLogin(role)}
           onOpenHakAkses={() => setIsHakAksesOpen(true)}
           onNavigateToHome={() => navigateTo('website')}
           onOpenInstallAndroid={() => setIsInstallModalOpen(true)}

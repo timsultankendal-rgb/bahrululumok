@@ -130,7 +130,7 @@ export const LoginPageView: React.FC<LoginPageViewProps> = ({
     setIsLoading(true);
 
     setTimeout(() => {
-      const result = authenticateUser(usernameInput, passwordInput, rememberMe);
+      const result = authenticateUser(usernameInput, passwordInput, rememberMe, selectedRole);
       setIsLoading(false);
 
       if (result.success && result.session) {

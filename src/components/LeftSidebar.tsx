@@ -45,7 +45,7 @@ interface LeftSidebarProps {
   onOpenIdCard?: () => void;
   branding?: AppBrandingConfig;
   onOpenBrandingSettings?: () => void;
-  onOpenLogin?: () => void;
+  onOpenLogin?: (role?: UserRole) => void;
   onOpenHakAkses?: () => void;
   onNavigateToHome?: () => void;
   onLogout?: () => void;
@@ -358,13 +358,16 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                   key={r}
                   onClick={() => {
                     playTapSound();
-                    onChangeRole(r);
+                    if (r !== activeRole && onOpenLogin) {
+                      onOpenLogin(r);
+                    }
                   }}
                   className={`px-2 py-0.5 rounded-md text-[9px] font-extrabold capitalize transition-colors cursor-pointer ${
                     activeRole === r
                       ? 'bg-emerald-700 text-white shadow-xs'
                       : 'bg-white text-slate-600 hover:bg-slate-200 border border-slate-200'
                   }`}
+                  title={r === activeRole ? `Peran aktif: ${r}` : `Login sebagai ${r}`}
                 >
                   {r}
                 </button>

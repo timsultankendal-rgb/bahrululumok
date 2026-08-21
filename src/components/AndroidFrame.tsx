@@ -25,6 +25,7 @@ interface AndroidFrameProps {
   unreadNotifications: number;
   branding?: AppBrandingConfig;
   onOpenBrandingSettings?: () => void;
+  onOpenLogin?: (role?: UserRole) => void;
 }
 
 export type DeviceViewMode = 'mobile' | 'tablet' | 'desktop' | 'full';
@@ -37,6 +38,7 @@ export const AndroidFrame: React.FC<AndroidFrameProps> = ({
   unreadNotifications,
   branding = DEFAULT_BRANDING,
   onOpenBrandingSettings,
+  onOpenLogin,
 }) => {
   const [currentTime, setCurrentTime] = useState<string>('07:00');
   const [batteryLevel] = useState<number>(92);
@@ -193,7 +195,13 @@ export const AndroidFrame: React.FC<AndroidFrameProps> = ({
           <div className="bg-white p-0.5 rounded-2xl border border-slate-200/90 shadow-xs flex text-[11px]">
             <button
               id="role-btn-santri-top"
-              onClick={() => onChangeRole('santri')}
+              onClick={() => {
+                playTapSound();
+                if (activeRole !== 'santri' && onOpenLogin) {
+                  onOpenLogin('santri');
+                }
+              }}
+              title={activeRole === 'santri' ? 'Peran aktif: Santri' : 'Login sebagai Santri'}
               className={`px-2.5 py-1 rounded-xl font-bold transition-all cursor-pointer ${
                 activeRole === 'santri'
                   ? 'bg-emerald-600 text-white shadow-xs'
@@ -204,7 +212,13 @@ export const AndroidFrame: React.FC<AndroidFrameProps> = ({
             </button>
             <button
               id="role-btn-guru-top"
-              onClick={() => onChangeRole('guru')}
+              onClick={() => {
+                playTapSound();
+                if (activeRole !== 'guru' && onOpenLogin) {
+                  onOpenLogin('guru');
+                }
+              }}
+              title={activeRole === 'guru' ? 'Peran aktif: Guru' : 'Login sebagai Guru'}
               className={`px-2.5 py-1 rounded-xl font-bold transition-all cursor-pointer ${
                 activeRole === 'guru'
                   ? 'bg-teal-600 text-white shadow-xs'
@@ -215,7 +229,13 @@ export const AndroidFrame: React.FC<AndroidFrameProps> = ({
             </button>
             <button
               id="role-btn-wali-top"
-              onClick={() => onChangeRole('wali')}
+              onClick={() => {
+                playTapSound();
+                if (activeRole !== 'wali' && onOpenLogin) {
+                  onOpenLogin('wali');
+                }
+              }}
+              title={activeRole === 'wali' ? 'Peran aktif: Wali' : 'Login sebagai Wali'}
               className={`px-2.5 py-1 rounded-xl font-bold transition-all cursor-pointer ${
                 activeRole === 'wali'
                   ? 'bg-amber-600 text-white shadow-xs'
@@ -226,7 +246,13 @@ export const AndroidFrame: React.FC<AndroidFrameProps> = ({
             </button>
             <button
               id="role-btn-admin-top"
-              onClick={() => onChangeRole('admin')}
+              onClick={() => {
+                playTapSound();
+                if (activeRole !== 'admin' && onOpenLogin) {
+                  onOpenLogin('admin');
+                }
+              }}
+              title={activeRole === 'admin' ? 'Peran aktif: Admin' : 'Login sebagai Admin'}
               className={`px-2.5 py-1 rounded-xl font-bold transition-all cursor-pointer ${
                 activeRole === 'admin'
                   ? 'bg-indigo-600 text-white shadow-xs'

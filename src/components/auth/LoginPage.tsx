@@ -120,7 +120,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     setIsLoading(true);
 
     setTimeout(() => {
-      const result = authenticateUser(usernameInput, passwordInput, rememberMe);
+      const result = authenticateUser(usernameInput, passwordInput, rememberMe, selectedRole);
       setIsLoading(false);
 
       if (result.success && result.session) {
@@ -262,7 +262,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
               <label className="text-xs font-bold text-slate-700 block mb-1.5 flex items-center justify-between">
                 <span>Password / PIN Masuk</span>
                 <span className="text-[10px] text-slate-400 font-normal">
-                  PIN standar: <strong className="text-slate-600">123456</strong>
+                  Sesuai setingan akun Anda
                 </span>
               </label>
               <div className="relative">

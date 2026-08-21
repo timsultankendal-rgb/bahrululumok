@@ -27,7 +27,7 @@ interface TopAppBarProps {
   onToggleSidebar?: () => void;
   onOpenSearch?: () => void;
   onChangeRole?: (role: UserRole) => void;
-  onOpenLogin?: () => void;
+  onOpenLogin?: (role?: UserRole) => void;
   onOpenHakAkses?: () => void;
   onNavigateToHome?: () => void;
   onOpenInstallAndroid?: () => void;
@@ -143,12 +143,17 @@ export const TopAppBar: React.FC<TopAppBarProps> = ({
               <span className="w-1 h-1 rounded-full bg-emerald-300 shrink-0" />
               <button
                 type="button"
-                onClick={handleCycleRole}
-                title="Beralih Peran Akun (Santri/Guru/Wali/Admin)"
+                onClick={() => {
+                  playTapSound();
+                  if (onOpenLogin) {
+                    onOpenLogin();
+                  }
+                }}
+                title="Ganti Akun / Login Peran Lain"
                 className="font-extrabold text-emerald-950 capitalize text-[8px] sm:text-[10px] bg-amber-300 hover:bg-amber-200 active:scale-95 transition-all px-1.5 py-0.2 rounded shadow-2xs cursor-pointer flex items-center gap-0.5 shrink-0"
               >
                 <span>{activeRole}</span>
-                <span className="text-[8px] opacity-70">⇄</span>
+                <span className="text-[8px] opacity-70">🔑</span>
               </button>
             </div>
           </div>

@@ -26,6 +26,7 @@ interface ProfilTabProps {
   activeRole: UserRole;
   onChangeRole: (role: UserRole) => void;
   onOpenNotifications: () => void;
+  onOpenLogin?: (role?: UserRole) => void;
 }
 
 export const ProfilTab: React.FC<ProfilTabProps> = ({
@@ -34,6 +35,7 @@ export const ProfilTab: React.FC<ProfilTabProps> = ({
   activeRole,
   onChangeRole,
   onOpenNotifications,
+  onOpenLogin,
 }) => {
   const [isCardFlipped, setIsCardFlipped] = useState<boolean>(false);
   const [darkTheme, setDarkTheme] = useState<boolean>(true);
@@ -59,7 +61,9 @@ export const ProfilTab: React.FC<ProfilTabProps> = ({
             id="role-santri-select"
             onClick={() => {
               playTapSound();
-              onChangeRole('santri');
+              if (activeRole !== 'santri' && onOpenLogin) {
+                onOpenLogin('santri');
+              }
             }}
             className={`p-2 rounded-2xl text-xs font-bold flex flex-col items-center gap-1 transition-all ${
               activeRole === 'santri'
@@ -75,7 +79,9 @@ export const ProfilTab: React.FC<ProfilTabProps> = ({
             id="role-guru-select"
             onClick={() => {
               playTapSound();
-              onChangeRole('guru');
+              if (activeRole !== 'guru' && onOpenLogin) {
+                onOpenLogin('guru');
+              }
             }}
             className={`p-2 rounded-2xl text-xs font-bold flex flex-col items-center gap-1 transition-all ${
               activeRole === 'guru'
@@ -91,7 +97,9 @@ export const ProfilTab: React.FC<ProfilTabProps> = ({
             id="role-wali-select"
             onClick={() => {
               playTapSound();
-              onChangeRole('wali');
+              if (activeRole !== 'wali' && onOpenLogin) {
+                onOpenLogin('wali');
+              }
             }}
             className={`p-2 rounded-2xl text-xs font-bold flex flex-col items-center gap-1 transition-all ${
               activeRole === 'wali'
