@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   ShoppingBag, 
   BookOpen, 
@@ -16,12 +16,31 @@ import {
   Trash2,
   Save,
   X,
-  Check
+  Check,
+  UserPlus,
+  Share2,
+  Printer,
+  Download,
+  Filter,
+  ShieldCheck,
+  Building2,
+  ChevronRight,
+  TrendingUp,
+  AlertCircle
 } from 'lucide-react';
 import { KOPAS_PRODUK_LIST, TABUNGAN_SANTRI_LIST } from '../../data/madrasahCompleteData';
-import { KopasProduk, TabunganSantri, UserRole } from '../../types';
+import { KopasProduk, TabunganSantri, RiwayatTabunganItem, UserRole } from '../../types';
 import { playTapSound } from '../../utils/audio';
 import { useAccessPermission } from '../../hooks/useAccessPermission';
+import { 
+  subscribeTabunganFromFirestore, 
+  saveTabunganToFirestore, 
+  deleteTabunganFromFirestore 
+} from '../../services/firestoreService';
+import { BukuTabunganModal } from '../tabungan/BukuTabunganModal';
+import { KuitansiTabunganModal } from '../tabungan/KuitansiTabunganModal';
+import { TransaksiTabunganModal } from '../tabungan/TransaksiTabunganModal';
+import { BukaRekeningModal } from '../tabungan/BukaRekeningModal';
 
 const STORAGE_KEY_PRODUK = 'madrasah_kopas_produk_v2';
 const STORAGE_KEY_TABUNGAN = 'madrasah_kopas_tabungan_v2';
@@ -29,17 +48,25 @@ const STORAGE_KEY_TABUNGAN = 'madrasah_kopas_tabungan_v2';
 interface KopasViewProps {
   activeRole?: UserRole;
   canEdit?: boolean;
+  currentUser?: { fullName?: string; username?: string; role?: string } | null;
 }
 
 export const KopasView: React.FC<KopasViewProps> = ({
   activeRole,
   canEdit: explicitCanEdit,
+  currentUser,
 }) => {
   const { canEdit } = useAccessPermission('3_kopas', activeRole, explicitCanEdit);
-  const [activeTab, setActiveTab] = useState<'produk' | 'tabungan' | 'kitab_khusus'>('produk');
+  const [activeTab, setActiveTab] = useState<'produk' | 'tabungan' | 'kitab_khusus'>('tabungan');
   const [selectedKategori, setSelectedKategori] = useState<string>('Semua');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
+  // Tabungan Filters & Sorting
+  const [filterKelasTabungan, setFilterKelasTabungan] = useState<string>('Semua');
+  const [filterProgramTabungan, setFilterProgramTabungan] = useState<string>('Semua');
+  const [sortByTabungan, setSortByTabungan] = useState<'tertinggi' | 'terendah' | 'terbaru' | 'nama'>('tertinggi');
+
+  // Produk State
   const [produkList, setProdukList] = useState<KopasProduk[]>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY_PRODUK);
@@ -48,6 +75,7 @@ export const KopasView: React.FC<KopasViewProps> = ({
     return KOPAS_PRODUK_LIST;
   });
 
+  // Tabungan State
   const [tabunganList, setTabunganList] = useState<TabunganSantri[]>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY_TABUNGAN);
@@ -56,9 +84,22 @@ export const KopasView: React.FC<KopasViewProps> = ({
     return TABUNGAN_SANTRI_LIST;
   });
 
-  const [selectedSantriTabungan, setSelectedSantriTabungan] = useState<TabunganSantri | null>(null);
+  const [isCloudSynced, setIsCloudSynced] = useState(false);
 
-  // Modals
+  // Modals for Tabungan
+  const [selectedPassbookSantri, setSelectedPassbookSantri] = useState<TabunganSantri | null>(null);
+  const [isTransaksiModalOpen, setIsTransaksiModalOpen] = useState(false);
+  const [transaksiTargetSantri, setTransaksiTargetSantri] = useState<TabunganSantri | null>(null);
+  const [transaksiInitialJenis, setTransaksiInitialJenis] = useState<'Setor' | 'Tarik'>('Setor');
+  const [isBukaRekeningModalOpen, setIsBukaRekeningModalOpen] = useState(false);
+
+  // Kuitansi Modal
+  const [kuitansiData, setKuitansiData] = useState<{
+    santri: TabunganSantri;
+    transaksi: RiwayatTabunganItem;
+  } | null>(null);
+
+  // Modals for Produk
   const [isProdukModalOpen, setIsProdukModalOpen] = useState(false);
   const [editingProduk, setEditingProduk] = useState<KopasProduk | null>(null);
   const [produkForm, setProdukForm] = useState<Omit<KopasProduk, 'id'>>({
@@ -71,17 +112,34 @@ export const KopasView: React.FC<KopasViewProps> = ({
     deskripsi: ''
   });
 
-  const [isTabunganModalOpen, setIsTabunganModalOpen] = useState(false);
-  const [selectedTabunganItem, setSelectedTabunganItem] = useState<TabunganSantri | null>(null);
-  const [transaksiJenis, setTransaksiJenis] = useState<'Setor' | 'Tarik'>('Setor');
-  const [transaksiNominal, setTransaksiNominal] = useState<number>(20000);
-  const [transaksiKeterangan, setTransaksiKeterangan] = useState<string>('Setoran rutin');
-
+  // Toast
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const showToast = (msg: string) => {
     setToastMsg(msg);
-    setTimeout(() => setToastMsg(null), 3000);
+    setTimeout(() => setToastMsg(null), 3500);
   };
+
+  // Real-time Cloud Firestore synchronization for Tabungan Santri
+  useEffect(() => {
+    const unsub = subscribeTabunganFromFirestore((cloudData) => {
+      if (cloudData && cloudData.length > 0) {
+        setTabunganList(cloudData);
+        setIsCloudSynced(true);
+        try {
+          localStorage.setItem(STORAGE_KEY_TABUNGAN, JSON.stringify(cloudData));
+        } catch {}
+      } else {
+        // If Firestore is empty initially, seed with our normalized default list
+        TABUNGAN_SANTRI_LIST.forEach((item) => {
+          saveTabunganToFirestore(item).catch(() => {});
+        });
+      }
+    }, () => {
+      setIsCloudSynced(false);
+    });
+
+    return () => unsub();
+  }, []);
 
   const saveProduk = (newList: KopasProduk[]) => {
     setProdukList(newList);
@@ -90,12 +148,126 @@ export const KopasView: React.FC<KopasViewProps> = ({
     } catch {}
   };
 
-  const saveTabungan = (newList: TabunganSantri[]) => {
-    setTabunganList(newList);
+  const handleSaveTabunganAccount = async (newAccount: TabunganSantri) => {
+    const updated = [newAccount, ...tabunganList.filter(t => t.id !== newAccount.id)];
+    setTabunganList(updated);
     try {
-      localStorage.setItem(STORAGE_KEY_TABUNGAN, JSON.stringify(newList));
+      localStorage.setItem(STORAGE_KEY_TABUNGAN, JSON.stringify(updated));
     } catch {}
+    
+    try {
+      await saveTabunganToFirestore(newAccount);
+    } catch (e) {
+      console.warn('Tabungan Firestore sync error:', e);
+    }
+
+    setIsBukaRekeningModalOpen(false);
+    showToast(`Rekening ${newAccount.nama} (${newAccount.noRekening}) berhasil dibuka.`);
+
+    // If there was an initial deposit, show receipt
+    if (newAccount.riwayat && newAccount.riwayat.length > 0) {
+      setKuitansiData({
+        santri: newAccount,
+        transaksi: newAccount.riwayat[0]
+      });
+    }
   };
+
+  const handleSaveTransaksi = async (santriId: string, newTransaksi: RiwayatTabunganItem) => {
+    const targetSantri = tabunganList.find(t => t.id === santriId);
+    if (!targetSantri) return;
+
+    const newSaldo = newTransaksi.saldoSesudah ?? (
+      newTransaksi.jenis === 'Setor' 
+        ? targetSantri.jumlahTabungan + newTransaksi.nominal 
+        : Math.max(0, targetSantri.jumlahTabungan - newTransaksi.nominal)
+    );
+
+    const updatedSantri: TabunganSantri = {
+      ...targetSantri,
+      jumlahTabungan: newSaldo,
+      totalTabungan: newSaldo,
+      terakhirTransaksi: newTransaksi.tanggal,
+      terakhirUpdate: newTransaksi.tanggal,
+      riwayat: [newTransaksi, ...targetSantri.riwayat]
+    };
+
+    const updatedList = tabunganList.map(t => t.id === santriId ? updatedSantri : t);
+    setTabunganList(updatedList);
+    try {
+      localStorage.setItem(STORAGE_KEY_TABUNGAN, JSON.stringify(updatedList));
+    } catch {}
+
+    // Save to Firestore
+    try {
+      await saveTabunganToFirestore(updatedSantri);
+    } catch (e) {
+      console.warn('Firestore save error:', e);
+    }
+
+    setIsTransaksiModalOpen(false);
+    setTransaksiTargetSantri(null);
+
+    // If Passbook modal is open for this student, update it
+    if (selectedPassbookSantri?.id === santriId) {
+      setSelectedPassbookSantri(updatedSantri);
+    }
+
+    // Automatically open the official receipt modal
+    setKuitansiData({
+      santri: updatedSantri,
+      transaksi: newTransaksi
+    });
+
+    showToast(`Transaksi ${newTransaksi.jenis} Rp ${newTransaksi.nominal.toLocaleString('id-ID')} untuk ${updatedSantri.nama} berhasil dicatat.`);
+  };
+
+  const handleDeleteTabungan = async (tab: TabunganSantri) => {
+    if (window.confirm(`Yakin ingin menghapus / menutup rekening tabungan milik "${tab.nama}" (${tab.noRekening})?`)) {
+      playTapSound();
+      const updated = tabunganList.filter(t => t.id !== tab.id);
+      setTabunganList(updated);
+      try {
+        localStorage.setItem(STORAGE_KEY_TABUNGAN, JSON.stringify(updated));
+        await deleteTabunganFromFirestore(tab.id);
+      } catch {}
+      showToast(`Rekening ${tab.nama} telah ditutup.`);
+    }
+  };
+
+  // Filter & Search Tabungan
+  const filteredTabungan = useMemo(() => {
+    return tabunganList.filter((t) => {
+      const matchKelas = filterKelasTabungan === 'Semua' || t.kelas === filterKelasTabungan;
+      const matchProgram = filterProgramTabungan === 'Semua' || (t.programTabungan || 'Reguler/Saku') === filterProgramTabungan;
+      const query = searchQuery.toLowerCase().trim();
+      const matchQuery = !query || 
+        t.nama.toLowerCase().includes(query) ||
+        t.noInduk.toLowerCase().includes(query) ||
+        (t.noRekening && t.noRekening.toLowerCase().includes(query)) ||
+        (t.namaWali && t.namaWali.toLowerCase().includes(query)) ||
+        (t.nisn && t.nisn.includes(query));
+
+      return matchKelas && matchProgram && matchQuery;
+    }).sort((a, b) => {
+      if (sortByTabungan === 'tertinggi') return b.jumlahTabungan - a.jumlahTabungan;
+      if (sortByTabungan === 'terendah') return a.jumlahTabungan - b.jumlahTabungan;
+      if (sortByTabungan === 'nama') return a.nama.localeCompare(b.nama);
+      // terbaru
+      return (b.terakhirTransaksi || '').localeCompare(a.terakhirTransaksi || '');
+    });
+  }, [tabunganList, filterKelasTabungan, filterProgramTabungan, searchQuery, sortByTabungan]);
+
+  // Tabungan Financial Aggregates
+  const totalDanaTabungan = tabunganList.reduce((acc, curr) => acc + curr.jumlahTabungan, 0);
+  const totalTransaksiMasuk = tabunganList.reduce((acc, curr) => {
+    const sumSetor = curr.riwayat.filter(r => r.jenis === 'Setor').reduce((s, r) => s + r.nominal, 0);
+    return acc + sumSetor;
+  }, 0);
+  const totalTransaksiKeluar = tabunganList.reduce((acc, curr) => {
+    const sumTarik = curr.riwayat.filter(r => r.jenis === 'Tarik').reduce((s, r) => s + r.nominal, 0);
+    return acc + sumTarik;
+  }, 0);
 
   // Filter Produk
   const filteredProduk = produkList.filter((p) => {
@@ -104,11 +276,7 @@ export const KopasView: React.FC<KopasViewProps> = ({
     return matchKategori && matchQuery;
   });
 
-  // Filter Kitab Saja
   const filteredKitab = produkList.filter((p) => p.kategori === 'Kitab' && (p.nama.toLowerCase().includes(searchQuery.toLowerCase()) || p.kode.toLowerCase().includes(searchQuery.toLowerCase())));
-
-  // Total Tabungan Keseluruhan
-  const totalDanaTabungan = tabunganList.reduce((acc, curr) => acc + curr.jumlahTabungan, 0);
 
   // Produk actions
   const handleOpenAddProduk = () => {
@@ -171,85 +339,74 @@ export const KopasView: React.FC<KopasViewProps> = ({
     }
   };
 
-  // Tabungan actions
-  const handleOpenTransaksi = (tab: TabunganSantri, jenis: 'Setor' | 'Tarik') => {
+  const handleExportCSV = () => {
     playTapSound();
-    setSelectedTabunganItem(tab);
-    setTransaksiJenis(jenis);
-    setTransaksiNominal(20000);
-    setTransaksiKeterangan(jenis === 'Setor' ? 'Setoran saku santri' : 'Penarikan uang jajan/kitab');
-    setIsTabunganModalOpen(true);
+    const headers = ['No Rekening', 'No Induk', 'NISN', 'Nama Santri', 'Kelas', 'Program', 'Nama Wali', 'No WA Wali', 'Saldo Tabungan (Rp)', 'Terakhir Transaksi'];
+    const rows = filteredTabungan.map(t => [
+      t.noRekening || '-',
+      t.noInduk,
+      t.nisn || '-',
+      `"${t.nama}"`,
+      t.kelas,
+      t.programTabungan || 'Reguler/Saku',
+      `"${t.namaWali || '-'}"`,
+      t.noWaWali || '-',
+      t.jumlahTabungan,
+      t.terakhirTransaksi || '-'
+    ]);
+
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `Rekap_Tabungan_Santri_Madrasah_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showToast('Data Tabungan Santri berhasil diexport ke CSV.');
   };
 
-  const handleSaveTransaksi = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedTabunganItem || transaksiNominal <= 0) return;
-    playTapSound();
-
-    const updated = tabunganList.map((t) => {
-      if (t.id === selectedTabunganItem.id) {
-        const newSaldo = transaksiJenis === 'Setor' 
-          ? t.jumlahTabungan + transaksiNominal 
-          : Math.max(0, t.jumlahTabungan - transaksiNominal);
-        
-        const newRiwayat = [
-          {
-            id: `rw-${Date.now()}`,
-            tanggal: new Date().toLocaleDateString('id-ID'),
-            jenis: transaksiJenis,
-            nominal: transaksiNominal,
-            keterangan: transaksiKeterangan,
-            petugas: 'Admin Kopas'
-          },
-          ...t.riwayat
-        ];
-
-        return {
-          ...t,
-          jumlahTabungan: newSaldo,
-          riwayat: newRiwayat
-        };
-      }
-      return t;
-    });
-
-    saveTabungan(updated);
-    if (selectedSantriTabungan?.id === selectedTabunganItem.id) {
-      setSelectedSantriTabungan(updated.find((u) => u.id === selectedTabunganItem.id) || null);
-    }
-    setIsTabunganModalOpen(false);
-    showToast(`Transaksi ${transaksiJenis} Rp ${transaksiNominal.toLocaleString('id-ID')} untuk ${selectedTabunganItem.nama} berhasil dicatat.`);
+  const formatRupiah = (num: number) => {
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      maximumFractionDigits: 0,
+    }).format(num);
   };
 
   return (
     <div className="p-3.5 sm:p-5 space-y-4 max-w-5xl mx-auto">
       {/* Toast Notification */}
       {toastMsg && (
-        <div className="fixed bottom-5 right-5 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-2xl text-xs font-bold shadow-2xl flex items-center gap-2 border border-emerald-500/50">
+        <div className="fixed bottom-5 right-5 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-2xl text-xs font-bold shadow-2xl flex items-center gap-2 border border-emerald-500/50 animate-in fade-in slide-in-from-bottom-2">
           <Check className="w-4 h-4 text-emerald-400" />
           <span>{toastMsg}</span>
         </div>
       )}
 
       {/* Header Banner */}
-      <div className="bg-gradient-to-r from-emerald-800 via-teal-700 to-emerald-700 rounded-3xl p-4 sm:p-5 text-white shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="bg-gradient-to-r from-emerald-800 via-teal-800 to-emerald-900 rounded-3xl p-4 sm:p-5 text-white shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="bg-amber-400 text-emerald-950 font-black text-[10px] px-2 py-0.5 rounded-full shadow-xs">
               MENU 3
             </span>
-            <span className="text-emerald-100 text-xs font-semibold">Koperasi Pondok & Santri</span>
+            <span className="text-emerald-100 text-xs font-semibold">Koperasi & Simpanan Santri</span>
+            <span className="inline-flex items-center gap-1 text-[10px] bg-emerald-950/60 text-emerald-300 px-2 py-0.5 rounded-full font-mono font-bold border border-emerald-400/30">
+              <ShieldCheck className="w-3 h-3 text-emerald-400" />
+              {isCloudSynced ? 'Cloud Firestore Aktif' : 'Tersinkronisasi'}
+            </span>
           </div>
-          <h1 className="text-lg sm:text-xl font-extrabold text-white">3. KOPERASI SANTRI (KOPAS)</h1>
+          <h1 className="text-lg sm:text-xl font-extrabold text-white">3. KOPERASI & TABUNGAN SANTRI</h1>
           <p className="text-xs text-emerald-100 mt-0.5">
-            Daftar Harga ATK, Kitab Kuning, Seragam & Buku Tabungan Santri
+            Buku Rekening Digital, Transaksi Setor/Tarik Real-Time & Koperasi Madrasah
           </p>
         </div>
 
-        <div className="bg-white/15 px-3.5 py-2 rounded-2xl border border-white/20 text-right backdrop-blur-xs">
-          <span className="text-[10px] text-emerald-100 font-bold block">Total Saldo Tabungan Santri</span>
-          <span className="text-sm sm:text-base font-black text-amber-300 font-mono">
-            Rp {totalDanaTabungan.toLocaleString('id-ID')}
+        <div className="bg-white/10 px-4 py-2.5 rounded-2xl border border-white/20 text-right backdrop-blur-xs flex-shrink-0">
+          <span className="text-[10px] text-emerald-200 font-bold block uppercase tracking-wider">Total Simpanan Santri</span>
+          <span className="text-base sm:text-lg font-black text-amber-300 font-mono">
+            {formatRupiah(totalDanaTabungan)}
           </span>
         </div>
       </div>
@@ -259,26 +416,11 @@ export const KopasView: React.FC<KopasViewProps> = ({
         <button
           onClick={() => {
             playTapSound();
-            setActiveTab('produk');
-          }}
-          className={`py-2.5 rounded-xl font-extrabold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-            activeTab === 'produk'
-              ? 'bg-emerald-600 text-white shadow-xs'
-              : 'text-slate-600 hover:text-slate-900'
-          }`}
-        >
-          <ShoppingBag className="w-4 h-4" />
-          <span>Daftar Harga</span>
-        </button>
-
-        <button
-          onClick={() => {
-            playTapSound();
             setActiveTab('tabungan');
           }}
           className={`py-2.5 rounded-xl font-extrabold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
             activeTab === 'tabungan'
-              ? 'bg-teal-600 text-white shadow-xs'
+              ? 'bg-teal-700 text-white shadow-xs'
               : 'text-slate-600 hover:text-slate-900'
           }`}
         >
@@ -289,24 +431,326 @@ export const KopasView: React.FC<KopasViewProps> = ({
         <button
           onClick={() => {
             playTapSound();
+            setActiveTab('produk');
+          }}
+          className={`py-2.5 rounded-xl font-extrabold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+            activeTab === 'produk'
+              ? 'bg-emerald-700 text-white shadow-xs'
+              : 'text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          <ShoppingBag className="w-4 h-4" />
+          <span>Daftar Harga KOPAS</span>
+        </button>
+
+        <button
+          onClick={() => {
+            playTapSound();
             setActiveTab('kitab_khusus');
           }}
           className={`py-2.5 rounded-xl font-extrabold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
             activeTab === 'kitab_khusus'
-              ? 'bg-amber-600 text-white shadow-xs'
+              ? 'bg-amber-700 text-white shadow-xs'
               : 'text-slate-600 hover:text-slate-900'
           }`}
         >
           <BookOpen className="w-4 h-4" />
-          <span>Kitab Kuning</span>
+          <span>Kitab Pegon</span>
         </button>
       </div>
 
-      {/* SUB-SECTION 1: DAFTAR PRODUK KOPERASI */}
+      {/* ========================================================================= */}
+      {/* SUB-SECTION 1: TABUNGAN SANTRI (PRIMARY & COMPLETE) */}
+      {/* ========================================================================= */}
+      {activeTab === 'tabungan' && (
+        <div className="space-y-4">
+          
+          {/* Ringkasan Finansial Tabungan */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="p-3.5 bg-gradient-to-br from-teal-50 to-emerald-50 rounded-2xl border border-teal-200/80 shadow-2xs">
+              <span className="text-[10px] font-bold text-teal-800 block uppercase tracking-wider">Total Simpanan</span>
+              <div className="text-base sm:text-lg font-black font-mono text-teal-950 mt-0.5">
+                {formatRupiah(totalDanaTabungan)}
+              </div>
+              <span className="text-[10px] text-teal-700 mt-1 block">Dari {tabunganList.length} rekening santri</span>
+            </div>
+
+            <div className="p-3.5 bg-emerald-50 rounded-2xl border border-emerald-200/80 shadow-2xs">
+              <span className="text-[10px] font-bold text-emerald-800 block uppercase tracking-wider">Total Setoran Masuk</span>
+              <div className="text-base sm:text-lg font-black font-mono text-emerald-950 mt-0.5">
+                +{formatRupiah(totalTransaksiMasuk)}
+              </div>
+              <span className="text-[10px] text-emerald-700 mt-1 block">Akumulasi seluruh setoran</span>
+            </div>
+
+            <div className="p-3.5 bg-rose-50 rounded-2xl border border-rose-200/80 shadow-2xs">
+              <span className="text-[10px] font-bold text-rose-800 block uppercase tracking-wider">Total Penarikan Dana</span>
+              <div className="text-base sm:text-lg font-black font-mono text-rose-950 mt-0.5">
+                -{formatRupiah(totalTransaksiKeluar)}
+              </div>
+              <span className="text-[10px] text-rose-700 mt-1 block">Penggunaan saku & kitab</span>
+            </div>
+
+            <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 shadow-2xs">
+              <span className="text-[10px] font-bold text-slate-700 block uppercase tracking-wider">Rekening Terdaftar</span>
+              <div className="text-base sm:text-lg font-black font-mono text-slate-900 mt-0.5">
+                {tabunganList.length} Santri
+              </div>
+              <span className="text-[10px] text-slate-500 mt-1 block">Kelas 1 s/d Kelas 6</span>
+            </div>
+          </div>
+
+          {/* Action Bar & Filters */}
+          <div className="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
+              
+              {/* Search Bar */}
+              <div className="relative flex-1">
+                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  placeholder="Cari santri, no. rekening, NISN, atau wali..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-emerald-500 font-medium"
+                />
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center gap-1.5 shrink-0 flex-wrap">
+                {canEdit && (
+                  <>
+                    <button
+                      onClick={() => {
+                        playTapSound();
+                        setIsBukaRekeningModalOpen(true);
+                      }}
+                      className="bg-teal-700 hover:bg-teal-800 text-white px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs"
+                    >
+                      <UserPlus className="w-3.5 h-3.5" />
+                      <span>Buka Rekening</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        playTapSound();
+                        setTransaksiTargetSantri(null);
+                        setTransaksiInitialJenis('Setor');
+                        setIsTransaksiModalOpen(true);
+                      }}
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Setor / Tarik</span>
+                    </button>
+                  </>
+                )}
+
+                <button
+                  onClick={handleExportCSV}
+                  className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all border border-slate-200"
+                  title="Export Data ke CSV"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Export CSV</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Filter Row: Kelas, Program, Sorting */}
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 text-xs">
+              <div className="flex items-center gap-2 flex-wrap">
+                {/* Filter Kelas */}
+                <div className="flex items-center gap-1">
+                  <span className="text-slate-400 font-bold text-[11px]">Kelas:</span>
+                  <select
+                    value={filterKelasTabungan}
+                    onChange={(e) => setFilterKelasTabungan(e.target.value)}
+                    className="px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 focus:outline-emerald-500"
+                  >
+                    <option value="Semua">Semua Kelas</option>
+                    <option value="Kelas 1">Kelas 1</option>
+                    <option value="Kelas 2">Kelas 2</option>
+                    <option value="Kelas 3">Kelas 3</option>
+                    <option value="Kelas 4">Kelas 4</option>
+                    <option value="Kelas 5">Kelas 5</option>
+                    <option value="Kelas 6">Kelas 6</option>
+                  </select>
+                </div>
+
+                {/* Filter Program */}
+                <div className="flex items-center gap-1">
+                  <span className="text-slate-400 font-bold text-[11px]">Program:</span>
+                  <select
+                    value={filterProgramTabungan}
+                    onChange={(e) => setFilterProgramTabungan(e.target.value)}
+                    className="px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 focus:outline-emerald-500"
+                  >
+                    <option value="Semua">Semua Program</option>
+                    <option value="Reguler/Saku">Reguler/Saku</option>
+                    <option value="Haflah & Wisuda">Haflah & Wisuda</option>
+                    <option value="Qurban">Qurban</option>
+                    <option value="Kitab & ATK">Kitab & ATK</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Sorting */}
+              <div className="flex items-center gap-1">
+                <span className="text-slate-400 font-bold text-[11px]">Urutkan:</span>
+                <select
+                  value={sortByTabungan}
+                  onChange={(e) => setSortByTabungan(e.target.value as any)}
+                  className="px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 focus:outline-emerald-500"
+                >
+                  <option value="tertinggi">Saldo Tertinggi</option>
+                  <option value="terendah">Saldo Terendah</option>
+                  <option value="terbaru">Transaksi Terbaru</option>
+                  <option value="nama">Nama (A-Z)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* List of Tabungan Santri */}
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
+            <div className="p-3.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+              <span className="font-extrabold text-xs text-slate-800 flex items-center gap-2">
+                <Wallet className="w-4 h-4 text-teal-600" />
+                Daftar Buku Rekening Tabungan Santri ({filteredTabungan.length})
+              </span>
+              <span className="text-[11px] text-slate-500 font-medium">
+                Tersinkron Cloud Firestore
+              </span>
+            </div>
+
+            {filteredTabungan.length === 0 ? (
+              <div className="p-10 text-center text-slate-400 text-xs">
+                Tidak ada data santri yang cocok dengan filter / pencarian.
+              </div>
+            ) : (
+              <div className="divide-y divide-slate-100">
+                {filteredTabungan.map((tab) => (
+                  <div
+                    key={tab.id}
+                    className="p-3.5 sm:p-4 hover:bg-slate-50/80 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                  >
+                    {/* Left: Santri Card & Photo */}
+                    <div className="flex items-center gap-3">
+                      {tab.foto ? (
+                        <img 
+                          src={tab.foto} 
+                          alt={tab.nama} 
+                          className="w-11 h-11 rounded-2xl object-cover border border-slate-200 shadow-2xs shrink-0"
+                        />
+                      ) : (
+                        <div className="w-11 h-11 rounded-2xl bg-teal-100 text-teal-800 font-black text-sm flex items-center justify-center border border-teal-200 shadow-2xs shrink-0">
+                          {tab.nama.charAt(0)}
+                        </div>
+                      )}
+
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-extrabold text-sm text-slate-900">{tab.nama}</h4>
+                          <span className="text-[10px] font-black px-2 py-0.2 rounded-md bg-teal-50 text-teal-800 border border-teal-200/60">
+                            {tab.kelas}
+                          </span>
+                          <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 hidden sm:inline-block">
+                            {tab.programTabungan || 'Reguler/Saku'}
+                          </span>
+                        </div>
+
+                        <p className="text-xs text-slate-500 font-mono flex flex-wrap items-center gap-x-2">
+                          <span className="font-bold text-slate-700">{tab.noRekening || tab.noInduk}</span>
+                          {tab.namaWali && <span className="text-slate-400">• Wali: {tab.namaWali}</span>}
+                          {tab.terakhirTransaksi && (
+                            <span className="text-slate-400 text-[10px]">• Update: {tab.terakhirTransaksi}</span>
+                          )}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Right: Saldo & Quick Actions */}
+                    <div className="flex items-center justify-between sm:justify-end gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+                      <div className="text-left sm:text-right">
+                        <span className="text-[10px] text-slate-400 font-bold block uppercase">Saldo Simpanan</span>
+                        <span className="text-base font-black text-emerald-800 font-mono">
+                          {formatRupiah(tab.jumlahTabungan)}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-1.5">
+                        {canEdit && (
+                          <>
+                            <button
+                              onClick={() => {
+                                playTapSound();
+                                setTransaksiTargetSantri(tab);
+                                setTransaksiInitialJenis('Setor');
+                                setIsTransaksiModalOpen(true);
+                              }}
+                              className="px-2.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1 shadow-2xs transition-colors"
+                              title="Setor Tunai"
+                            >
+                              <Plus className="w-3.5 h-3.5" />
+                              <span>Setor</span>
+                            </button>
+
+                            <button
+                              onClick={() => {
+                                playTapSound();
+                                setTransaksiTargetSantri(tab);
+                                setTransaksiInitialJenis('Tarik');
+                                setIsTransaksiModalOpen(true);
+                              }}
+                              className="px-2.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold flex items-center gap-1 shadow-2xs transition-colors"
+                              title="Tarik Tunai"
+                            >
+                              <ArrowUpRight className="w-3.5 h-3.5" />
+                              <span>Tarik</span>
+                            </button>
+                          </>
+                        )}
+
+                        {/* Open Official Passbook Modal */}
+                        <button
+                          onClick={() => {
+                            playTapSound();
+                            setSelectedPassbookSantri(tab);
+                          }}
+                          className="px-3 py-1.5 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-800 text-xs font-extrabold transition-colors border border-teal-200 flex items-center gap-1"
+                        >
+                          <BookOpen className="w-3.5 h-3.5" />
+                          <span>Buku Tabungan</span>
+                        </button>
+
+                        {/* Delete Account (Admin only) */}
+                        {canEdit && activeRole === 'admin' && (
+                          <button
+                            onClick={() => handleDeleteTabungan(tab)}
+                            className="p-1.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                            title="Tutup / Hapus Rekening"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* SUB-SECTION 2: DAFTAR PRODUK KOPERASI */}
+      {/* ========================================================================= */}
       {activeTab === 'produk' && (
         <div className="space-y-4">
           <div className="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-            {/* Filter Kategori (Responsive Grid) */}
+            {/* Filter Kategori */}
             <div className="grid grid-cols-4 sm:flex gap-1.5 w-full sm:w-auto">
               {['Semua', 'ATK', 'Kitab', 'Seragam'].map((kat) => (
                 <button
@@ -387,7 +831,7 @@ export const KopasView: React.FC<KopasViewProps> = ({
                     <div>
                       <span className="text-[10px] text-slate-400 font-bold block">Harga Resmi</span>
                       <span className="text-sm font-black text-emerald-700 font-mono">
-                        Rp {prod.harga.toLocaleString('id-ID')}
+                        {formatRupiah(prod.harga)}
                       </span>
                     </div>
 
@@ -424,124 +868,9 @@ export const KopasView: React.FC<KopasViewProps> = ({
         </div>
       )}
 
-      {/* SUB-SECTION 2: TABUNGAN SANTRI */}
-      {activeTab === 'tabungan' && (
-        <div className="space-y-4">
-          <div className="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
-            <div className="p-3.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
-              <span className="font-extrabold text-xs text-slate-800 flex items-center gap-2">
-                <Wallet className="w-4 h-4 text-teal-600" />
-                Buku Rekening Tabungan Santri
-              </span>
-              <span className="text-[11px] text-slate-500 font-medium">
-                {tabunganList.length} Santri Memiliki Rekening
-              </span>
-            </div>
-
-            <div className="divide-y divide-slate-100">
-              {tabunganList.map((tab) => (
-                <div
-                  key={tab.id}
-                  className="p-3.5 sm:p-4 hover:bg-slate-50/80 transition-colors"
-                >
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <div className="space-y-0.5">
-                      <div className="flex items-center gap-2">
-                        <h4 className="font-extrabold text-sm text-slate-800">{tab.nama}</h4>
-                        <span className="text-[10px] font-black px-2 py-0.2 rounded-md bg-slate-100 text-slate-700">
-                          {tab.kelas}
-                        </span>
-                      </div>
-                      <p className="text-xs text-slate-500 font-mono">
-                        No. Rek: <strong>{tab.noRekening}</strong> • No. Induk: {tab.noInduk}
-                      </p>
-                    </div>
-
-                    <div className="flex items-center justify-between sm:justify-end gap-3">
-                      <div className="text-left sm:text-right">
-                        <span className="text-[10px] text-slate-400 font-bold block">Saldo Aktif</span>
-                        <span className="text-base font-black text-emerald-800 font-mono">
-                          Rp {tab.jumlahTabungan.toLocaleString('id-ID')}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center gap-1.5">
-                        {canEdit && (
-                          <>
-                            <button
-                              onClick={() => handleOpenTransaksi(tab, 'Setor')}
-                              className="px-2.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1 shadow-2xs"
-                              title="Setor Tabungan"
-                            >
-                              <Plus className="w-3.5 h-3.5" />
-                              <span>Setor</span>
-                            </button>
-                            <button
-                              onClick={() => handleOpenTransaksi(tab, 'Tarik')}
-                              className="px-2.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold flex items-center gap-1 shadow-2xs"
-                              title="Tarik Tabungan"
-                            >
-                              <ArrowUpRight className="w-3.5 h-3.5" />
-                              <span>Tarik</span>
-                            </button>
-                          </>
-                        )}
-
-                        <button
-                          onClick={() => {
-                            playTapSound();
-                            setSelectedSantriTabungan(selectedSantriTabungan?.id === tab.id ? null : tab);
-                          }}
-                          className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors cursor-pointer"
-                        >
-                          {selectedSantriTabungan?.id === tab.id ? 'Tutup' : 'Riwayat'}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Mutasi Riwayat Setor/Tarik */}
-                  {selectedSantriTabungan?.id === tab.id && (
-                    <div className="mt-3.5 pt-3 border-t border-slate-200 space-y-2 animate-fadeIn">
-                      <span className="text-xs font-extrabold text-slate-700 block">
-                        Riwayat Transaksi Setor & Tarik Tabungan:
-                      </span>
-                      <div className="space-y-1.5">
-                        {tab.riwayat.map((rw) => (
-                          <div
-                            key={rw.id}
-                            className="p-2.5 bg-slate-50 rounded-2xl border border-slate-200/80 flex items-center justify-between text-xs"
-                          >
-                            <div className="flex items-center gap-2.5">
-                              <div className={`w-7 h-7 rounded-xl flex items-center justify-center ${
-                                rw.jenis === 'Setor' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
-                              }`}>
-                                {rw.jenis === 'Setor' ? <ArrowDownLeft className="w-4 h-4" /> : <ArrowUpRight className="w-4 h-4" />}
-                              </div>
-                              <div>
-                                <span className="font-extrabold text-slate-800">{rw.keterangan}</span>
-                                <span className="text-[10px] text-slate-400 block font-mono">{rw.tanggal} • Petugas: {rw.petugas}</span>
-                              </div>
-                            </div>
-
-                            <span className={`font-black font-mono text-sm ${
-                              rw.jenis === 'Setor' ? 'text-emerald-700' : 'text-rose-700'
-                            }`}>
-                              {rw.jenis === 'Setor' ? '+' : '-'} Rp {rw.nominal.toLocaleString('id-ID')}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
+      {/* ========================================================================= */}
       {/* SUB-SECTION 3: DAFTAR KITAB & HARGA KHUSUS */}
+      {/* ========================================================================= */}
       {activeTab === 'kitab_khusus' && (
         <div className="space-y-4">
           <div className="bg-amber-50 border border-amber-200 rounded-3xl p-4 text-xs text-amber-900">
@@ -570,7 +899,7 @@ export const KopasView: React.FC<KopasViewProps> = ({
 
                   <div className="text-right shrink-0">
                     <span className="text-sm sm:text-base font-black text-emerald-700 font-mono">
-                      Rp {k.harga.toLocaleString('id-ID')}
+                      {formatRupiah(k.harga)}
                     </span>
                     <span className="text-[10px] text-slate-400 block">Stok: {k.stok} exp</span>
                   </div>
@@ -581,7 +910,64 @@ export const KopasView: React.FC<KopasViewProps> = ({
         </div>
       )}
 
-      {/* Modal Tambah / Edit Produk */}
+      {/* ========================================================================= */}
+      {/* MODALS */}
+      {/* ========================================================================= */}
+
+      {/* Modal Buku Tabungan Digital (Passbook) */}
+      {selectedPassbookSantri && (
+        <BukuTabunganModal
+          santri={selectedPassbookSantri}
+          onClose={() => setSelectedPassbookSantri(null)}
+          onOpenTransaksi={(s, jenis) => {
+            setTransaksiTargetSantri(s);
+            setTransaksiInitialJenis(jenis);
+            setIsTransaksiModalOpen(true);
+          }}
+          onViewKuitansi={(s, item) => {
+            setKuitansiData({
+              santri: s,
+              transaksi: item
+            });
+          }}
+          canEdit={canEdit}
+        />
+      )}
+
+      {/* Modal Transaksi Setor / Tarik Tabungan */}
+      {isTransaksiModalOpen && (
+        <TransaksiTabunganModal
+          santriList={tabunganList}
+          initialSantri={transaksiTargetSantri}
+          initialJenis={transaksiInitialJenis}
+          currentUser={currentUser}
+          onClose={() => {
+            setIsTransaksiModalOpen(false);
+            setTransaksiTargetSantri(null);
+          }}
+          onSave={handleSaveTransaksi}
+        />
+      )}
+
+      {/* Modal Buka Rekening Baru */}
+      {isBukaRekeningModalOpen && (
+        <BukaRekeningModal
+          existingTabunganList={tabunganList}
+          onClose={() => setIsBukaRekeningModalOpen(false)}
+          onSave={handleSaveTabunganAccount}
+        />
+      )}
+
+      {/* Modal Kuitansi Transaksi Resmi */}
+      {kuitansiData && (
+        <KuitansiTabunganModal
+          santri={kuitansiData.santri}
+          transaksi={kuitansiData.transaksi}
+          onClose={() => setKuitansiData(null)}
+        />
+      )}
+
+      {/* Modal Tambah / Edit Produk KOPAS */}
       {isProdukModalOpen && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-5 max-w-md w-full shadow-2xl space-y-4">
@@ -698,91 +1084,6 @@ export const KopasView: React.FC<KopasViewProps> = ({
                 >
                   <Save className="w-4 h-4" />
                   <span>Simpan Produk</span>
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Modal Setor / Tarik Tabungan */}
-      {isTabunganModalOpen && selectedTabunganItem && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-5 max-w-sm w-full shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div>
-                <h3 className="font-extrabold text-sm text-slate-900 flex items-center gap-2">
-                  <Wallet className="w-4 h-4 text-teal-600" />
-                  {transaksiJenis === 'Setor' ? 'Setor Tabungan' : 'Tarik Tabungan'}
-                </h3>
-                <p className="text-xs text-slate-500">{selectedTabunganItem.nama} ({selectedTabunganItem.kelas})</p>
-              </div>
-              <button
-                onClick={() => setIsTabunganModalOpen(false)}
-                className="p-1 rounded-full text-slate-400 hover:bg-slate-100"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveTransaksi} className="space-y-3">
-              <div>
-                <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                  Nominal Transaksi (Rp):
-                </label>
-                <input
-                  type="number"
-                  min="1000"
-                  step="1000"
-                  value={transaksiNominal}
-                  onChange={(e) => setTransaksiNominal(Number(e.target.value))}
-                  className="w-full px-3 py-2 text-sm font-bold bg-slate-50 border border-slate-300 rounded-xl focus:outline-emerald-500 font-mono"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                  Keterangan:
-                </label>
-                <input
-                  type="text"
-                  value={transaksiKeterangan}
-                  onChange={(e) => setTransaksiKeterangan(e.target.value)}
-                  placeholder="Contoh: Uang saku mingguan"
-                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:outline-emerald-500"
-                  required
-                />
-              </div>
-
-              <div className="p-3 bg-slate-50 rounded-xl text-xs space-y-1">
-                <div className="flex justify-between text-slate-500">
-                  <span>Saldo Saat Ini:</span>
-                  <span className="font-mono font-bold">Rp {selectedTabunganItem.jumlahTabungan.toLocaleString('id-ID')}</span>
-                </div>
-                <div className="flex justify-between font-bold text-emerald-800 pt-1 border-t border-slate-200">
-                  <span>Saldo Baru:</span>
-                  <span className="font-mono">
-                    Rp {(transaksiJenis === 'Setor' ? selectedTabunganItem.jumlahTabungan + transaksiNominal : Math.max(0, selectedTabunganItem.jumlahTabungan - transaksiNominal)).toLocaleString('id-ID')}
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setIsTabunganModalOpen(false)}
-                  className="flex-1 py-2 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  className={`flex-1 py-2 rounded-xl text-xs font-extrabold text-white shadow-xs ${
-                    transaksiJenis === 'Setor' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-rose-600 hover:bg-rose-700'
-                  }`}
-                >
-                  Konfirmasi {transaksiJenis}
                 </button>
               </div>
             </form>

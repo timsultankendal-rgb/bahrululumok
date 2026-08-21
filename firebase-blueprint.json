@@ -105,6 +105,25 @@
         "updatedAt": { "type": "string" }
       },
       "required": ["id", "configKey"]
+    },
+    "TabunganSantri": {
+      "title": "Tabungan Santri",
+      "description": "Buku rekening dan mutasi tabungan santri madrasah",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "noInduk": { "type": "string" },
+        "nisn": { "type": "string" },
+        "noRekening": { "type": "string" },
+        "nama": { "type": "string" },
+        "kelas": { "type": "string" },
+        "jumlahTabungan": { "type": "number" },
+        "programTabungan": { "type": "string" },
+        "status": { "type": "string" },
+        "riwayat": { "type": "array" },
+        "terakhirUpdate": { "type": "string" }
+      },
+      "required": ["id", "noInduk", "nama", "kelas", "jumlahTabungan", "riwayat"]
     }
   },
   "firestore": {
@@ -135,6 +154,10 @@
     "/app_config/{configId}": {
       "schema": "AppConfig",
       "description": "Konfigurasi branding, sambutan kepala, dan profil aplikasi"
+    },
+    "/tabungan_santri/{tabunganId}": {
+      "schema": "TabunganSantri",
+      "description": "Data rekening dan mutasi tabungan santri"
     }
   }
 }

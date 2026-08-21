@@ -109,25 +109,41 @@ export interface BarangKopas {
 }
 export type KopasProduk = BarangKopas;
 
+export interface RiwayatTabunganItem {
+  id: string;
+  tanggal: string;
+  waktu?: string;
+  tipe?: 'Setor' | 'Tarik' | string;
+  jenis: 'Setor' | 'Tarik';
+  nominal: number;
+  saldoSebelum?: number;
+  saldoSesudah?: number;
+  kategori?: string;
+  keterangan: string;
+  petugas?: string;
+  pembayarPenarik?: string;
+  idKuitansi?: string;
+}
+
 export interface TabunganSantri {
   id: string;
   noInduk: string;
+  nisn?: string;
+  noRekening?: string;
   namaSantri?: string;
-  nama?: string;
+  nama: string;
   kelas: string;
+  foto?: string;
+  namaWali?: string;
+  noWaWali?: string;
+  programTabungan?: 'Reguler/Saku' | 'Haflah & Wisuda' | 'Qurban' | 'Kitab & ATK' | string;
+  status?: 'Aktif' | 'Nonaktif' | 'Ditutup';
   totalTabungan?: number;
-  jumlahTabungan?: number;
+  jumlahTabungan: number;
   terakhirTransaksi?: string;
   terakhirUpdate?: string;
-  riwayat: {
-    id: string;
-    tanggal: string;
-    tipe?: 'Setor' | 'Tarik' | string;
-    jenis?: 'Setor' | 'Tarik' | string;
-    nominal: number;
-    keterangan: string;
-    petugas?: string;
-  }[];
+  tanggalBuka?: string;
+  riwayat: RiwayatTabunganItem[];
 }
 
 // 4. DOKUMENTASI

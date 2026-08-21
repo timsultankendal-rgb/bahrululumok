@@ -12,7 +12,7 @@ import {
   Unsubscribe
 } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
-import { PresensiMuridItem, PresensiAsatidzItem, BiodataAsatidz, BiodataMurid } from '../types';
+import { PresensiMuridItem, PresensiAsatidzItem, BiodataAsatidz, BiodataMurid, TabunganSantri, RiwayatTabunganItem } from '../types';
 
 /**
  * Standardized Generic CRUD Handlers for Firestore
@@ -398,5 +398,30 @@ export function compressImageFile(
     reader.readAsDataURL(file);
   });
 }
+
+/**
+ * TABUNGAN SANTRI CLOUD FIRESTORE HELPERS
+ * Realtime synchronization across all devices for student passbooks & savings
+ */
+export async function saveTabunganToFirestore(tabungan: TabunganSantri): Promise<void> {
+  const docId = tabungan.id || `tab_${Date.now()}`;
+  await createDocument<TabunganSantri>('tabungan_santri', docId, {
+    ...tabungan,
+    id: docId,
+    terakhirUpdate: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
+  });
+}
+
+export async function deleteTabunganFromFirestore(docId: string): Promise<void> {
+  await deleteDocument('tabungan_santri', docId);
+}
+
+export function subscribeTabunganFromFirestore(
+  callback: (list: TabunganSantri[]) => void,
+  onError?: (err: Error) => void
+): Unsubscribe {
+  return subscribeCollection<TabunganSantri>('tabungan_santri', callback, onError);
+}
+
 
 
