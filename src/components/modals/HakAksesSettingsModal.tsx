@@ -49,7 +49,8 @@ import {
   syncUserAccountToCloud,
   deleteUserAccountFromCloud,
   getLocalSecurityConfig,
-  saveLocalSecurityConfig
+  saveLocalSecurityConfig,
+  resetToDefaultRolePermissions
 } from '../../services/authService';
 import { DEFAULT_ROLE_PERMISSIONS, DEFAULT_USER_ACCOUNTS } from '../../data/defaultAuthData';
 import { playTapSound } from '../../utils/audio';
@@ -292,12 +293,14 @@ export const HakAksesSettingsModal: React.FC<HakAksesSettingsModalProps> = ({
   };
 
   // Reset to Default Permissions
-  const handleResetToDefaultPermissions = () => {
+  const handleResetToDefaultPermissions = async () => {
     playTapSound();
-    if (window.confirm('Apakah Anda yakin ingin mengembalikan seluruh Hak Akses ke standar madrasah?')) {
-      setPermissions(DEFAULT_ROLE_PERMISSIONS);
-      saveLocalRolePermissions(DEFAULT_ROLE_PERMISSIONS);
-      showToast('🔄 Hak Akses berhasil dikembalikan ke standar default.');
+    if (window.confirm('Apakah Anda yakin ingin menormalkan seluruh Hak Akses (18 Menu) ke standar madrasah resmi?')) {
+      setIsSaving(true);
+      const defaults = await resetToDefaultRolePermissions();
+      setPermissions(defaults);
+      setIsSaving(false);
+      showToast('🔄 Hak Akses berhasil dinormalkan ke standar resmi madrasah & disinkronkan ke Cloud!');
       if (onPermissionsUpdated) onPermissionsUpdated();
     }
   };

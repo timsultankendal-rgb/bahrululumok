@@ -158,13 +158,38 @@ export async function deleteUserAccountFromCloud(userId: string): Promise<void> 
 // ----------------------------------------------------
 // 3. ROLE PERMISSIONS MANAGEMENT (Local + Firestore)
 // ----------------------------------------------------
+export function normalizeRolePermissions(
+  incoming?: Record<string, any>
+): Record<string, RolePermissions> {
+  const normalized: Record<string, RolePermissions> = JSON.parse(
+    JSON.stringify(DEFAULT_ROLE_PERMISSIONS)
+  );
+  if (!incoming || typeof incoming !== 'object') return normalized;
+
+  const roles: UserRole[] = ['admin', 'guru', 'wali', 'santri'];
+  roles.forEach((r) => {
+    if (incoming[r]) {
+      normalized[r] = {
+        ...normalized[r],
+        ...incoming[r],
+        menuAccess: {
+          ...normalized[r].menuAccess,
+          ...(incoming[r].menuAccess || {}),
+        },
+      };
+    }
+  });
+
+  return normalized;
+}
+
 export function getLocalRolePermissions(): Record<string, RolePermissions> {
   try {
     const saved = localStorage.getItem(STORAGE_KEY_PERMISSIONS);
     if (saved) {
       const parsed = JSON.parse(saved);
       if (parsed && typeof parsed === 'object') {
-        return { ...DEFAULT_ROLE_PERMISSIONS, ...parsed };
+        return normalizeRolePermissions(parsed);
       }
     }
   } catch (err) {
@@ -177,10 +202,23 @@ export function saveLocalRolePermissions(
   permissions: Record<string, RolePermissions>
 ): void {
   try {
-    localStorage.setItem(STORAGE_KEY_PERMISSIONS, JSON.stringify(permissions));
+    const normalized = normalizeRolePermissions(permissions);
+    localStorage.setItem(STORAGE_KEY_PERMISSIONS, JSON.stringify(normalized));
   } catch (err) {
     console.warn('Failed to save local role permissions:', err);
   }
+}
+
+export async function resetToDefaultRolePermissions(): Promise<Record<string, RolePermissions>> {
+  saveLocalRolePermissions(DEFAULT_ROLE_PERMISSIONS);
+  try {
+    for (const r of ['admin', 'guru', 'wali', 'santri'] as UserRole[]) {
+      await createDocument('role_permissions', r, DEFAULT_ROLE_PERMISSIONS[r]);
+    }
+  } catch (err) {
+    console.warn('Failed to reset role permissions to cloud:', err);
+  }
+  return DEFAULT_ROLE_PERMISSIONS;
 }
 
 export function subscribeRolePermissionsFromCloud(
@@ -191,15 +229,26 @@ export function subscribeRolePermissionsFromCloud(
       const current = getLocalRolePermissions();
       items.forEach((item) => {
         const roleKey = item.id as UserRole;
-        if (roleKey) {
+        if (roleKey && current[roleKey]) {
           current[roleKey] = {
             ...current[roleKey],
-            ...item as unknown as RolePermissions,
+            ...(item as unknown as RolePermissions),
+            menuAccess: {
+              ...current[roleKey].menuAccess,
+              ...(item.menuAccess || {}),
+            },
           };
         }
       });
-      saveLocalRolePermissions(current);
-      callback(current);
+      const normalized = normalizeRolePermissions(current);
+      saveLocalRolePermissions(normalized);
+      callback(normalized);
+    } else {
+      // If cloud has no permissions yet, seed defaults to cloud
+      for (const r of ['admin', 'guru', 'wali', 'santri'] as UserRole[]) {
+        createDocument('role_permissions', r, DEFAULT_ROLE_PERMISSIONS[r]).catch(console.warn);
+      }
+      callback(DEFAULT_ROLE_PERMISSIONS);
     }
   });
 }
@@ -336,12 +385,36 @@ export function checkMenuAccessLevel(
   role: UserRole,
   menuId: MenuId | string
 ): AccessLevel {
+  // Admin always has full read_write access
+  if (role === 'admin') return 'read_write';
+
   const permissions = getLocalRolePermissions();
-  const rolePerm = permissions[role];
+  const rolePerm = permissions[role] || DEFAULT_ROLE_PERMISSIONS[role];
   if (!rolePerm || !rolePerm.menuAccess) {
     return 'read'; // Safe fallback
   }
-  return rolePerm.menuAccess[menuId] ?? 'read';
+
+  let access = rolePerm.menuAccess[menuId];
+  if (access === undefined) {
+    // Check aliases if menuId is formatted differently
+    const aliasMap: Record<string, string> = {
+      '13_tatatertib': '13_tata_tertib',
+      '13_tata_tertib': '13_tatatertib',
+      '9_visimisi': '9_visi_misi',
+      '9_visi_misi': '9_visimisi',
+      '6_jadwal': '6_jadwal_seragam_mapel',
+      '6_jadwal_seragam_mapel': '6_jadwal',
+    };
+    if (aliasMap[menuId] && rolePerm.menuAccess[aliasMap[menuId]] !== undefined) {
+      access = rolePerm.menuAccess[aliasMap[menuId]];
+    }
+  }
+
+  if (access === undefined) {
+    access = DEFAULT_ROLE_PERMISSIONS[role]?.menuAccess?.[menuId] ?? 'read';
+  }
+
+  return access;
 }
 
 export function canEditMenu(role: UserRole, menuId: MenuId | string): boolean {

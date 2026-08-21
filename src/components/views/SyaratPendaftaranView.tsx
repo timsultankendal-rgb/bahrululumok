@@ -10,9 +10,20 @@ import {
   ArrowRight 
 } from 'lucide-react';
 import { SYARAT_PENDAFTARAN_DATA } from '../../data/madrasahCompleteData';
+import { UserRole } from '../../types';
 import { playTapSound } from '../../utils/audio';
+import { useAccessPermission } from '../../hooks/useAccessPermission';
 
-export const SyaratPendaftaranView: React.FC = () => {
+interface SyaratPendaftaranViewProps {
+  activeRole?: UserRole;
+  canEdit?: boolean;
+}
+
+export const SyaratPendaftaranView: React.FC<SyaratPendaftaranViewProps> = ({
+  activeRole,
+  canEdit: explicitCanEdit,
+}) => {
+  const { canEdit } = useAccessPermission('14_syarat_pendaftaran', activeRole, explicitCanEdit);
   const [showOnlineForm, setShowOnlineForm] = useState<boolean>(false);
   const [formData, setFormData] = useState({
     namaLengkap: '',

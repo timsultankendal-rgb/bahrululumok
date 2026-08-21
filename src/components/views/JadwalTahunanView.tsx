@@ -9,10 +9,20 @@ import {
   Bookmark
 } from 'lucide-react';
 import { JADWAL_TAHUNAN_LIST } from '../../data/madrasahCompleteData';
-import { KegiatanTahunanItem } from '../../types';
+import { KegiatanTahunanItem, UserRole } from '../../types';
 import { playTapSound } from '../../utils/audio';
+import { useAccessPermission } from '../../hooks/useAccessPermission';
 
-export const JadwalTahunanView: React.FC = () => {
+interface JadwalTahunanViewProps {
+  activeRole?: UserRole;
+  canEdit?: boolean;
+}
+
+export const JadwalTahunanView: React.FC<JadwalTahunanViewProps> = ({
+  activeRole,
+  canEdit: explicitCanEdit,
+}) => {
+  const { canEdit } = useAccessPermission('12_jadwal_tahunan', activeRole, explicitCanEdit);
   const [selectedKategori, setSelectedKategori] = useState<string>('Semua');
   const [searchQuery, setSearchQuery] = useState<string>('');
 

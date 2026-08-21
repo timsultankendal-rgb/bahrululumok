@@ -10,8 +10,19 @@ import {
   Activity 
 } from 'lucide-react';
 import { EKSTRAKURIKULER_LIST } from '../../data/madrasahCompleteData';
+import { UserRole } from '../../types';
+import { useAccessPermission } from '../../hooks/useAccessPermission';
 
-export const EkstrakurikulerView: React.FC = () => {
+interface EkstrakurikulerViewProps {
+  activeRole?: UserRole;
+  canEdit?: boolean;
+}
+
+export const EkstrakurikulerView: React.FC<EkstrakurikulerViewProps> = ({
+  activeRole,
+  canEdit: explicitCanEdit,
+}) => {
+  const { canEdit } = useAccessPermission('16_ekstrakurikuler', activeRole, explicitCanEdit);
   return (
     <div className="p-3.5 sm:p-5 space-y-4 max-w-5xl mx-auto">
       {/* Header Banner */}

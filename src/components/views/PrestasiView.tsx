@@ -10,9 +10,20 @@ import {
   ShieldCheck 
 } from 'lucide-react';
 import { PRESTASI_LIST } from '../../data/madrasahCompleteData';
+import { UserRole } from '../../types';
 import { playTapSound } from '../../utils/audio';
+import { useAccessPermission } from '../../hooks/useAccessPermission';
 
-export const PrestasiView: React.FC = () => {
+interface PrestasiViewProps {
+  activeRole?: UserRole;
+  canEdit?: boolean;
+}
+
+export const PrestasiView: React.FC<PrestasiViewProps> = ({
+  activeRole,
+  canEdit: explicitCanEdit,
+}) => {
+  const { canEdit } = useAccessPermission('17_prestasi', activeRole, explicitCanEdit);
   const [selectedTingkat, setSelectedTingkat] = useState<string>('Semua');
   const [searchQuery, setSearchQuery] = useState<string>('');
 

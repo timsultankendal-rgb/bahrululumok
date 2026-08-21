@@ -33,7 +33,7 @@ export const JadwalSeragamMapelView: React.FC<JadwalSeragamMapelViewProps> = ({
   activeRole,
   canEdit: explicitCanEdit,
 }) => {
-  const { canEdit } = useAccessPermission('6_jadwal', activeRole, explicitCanEdit);
+  const { canEdit } = useAccessPermission('6_jadwal_seragam_mapel', activeRole, explicitCanEdit);
   const [activeTab, setActiveTab] = useState<'seragam' | 'mapel'>('seragam');
   const [selectedCawu, setSelectedCawu] = useState<string>('Cawu 1');
   const [selectedHari, setSelectedHari] = useState<string>('Semua');

@@ -795,10 +795,10 @@ export default function App() {
               {/* 18 Individual Madrasah Views */}
               {activeTab === '1_daftar_hadir' && <DaftarHadirView activeRole={activeRole} />}
               {activeTab === '2_biodata' && <BiodataView activeRole={activeRole} />}
-              {activeTab === '3_kopas' && <KopasView />}
-              {activeTab === '4_dokumentasi' && <DokumentasiView />}
-              {activeTab === '5_raport' && <RaportView />}
-              {activeTab === '6_jadwal_seragam_mapel' && <JadwalSeragamMapelView />}
+              {activeTab === '3_kopas' && <KopasView activeRole={activeRole} />}
+              {activeTab === '4_dokumentasi' && <DokumentasiView activeRole={activeRole} />}
+              {activeTab === '5_raport' && <RaportView activeRole={activeRole} />}
+              {activeTab === '6_jadwal_seragam_mapel' && <JadwalSeragamMapelView activeRole={activeRole} />}
               {activeTab === '7_profile_madrasah' && (
                 <ProfileMadrasahView
                   activeRole={activeRole}
@@ -807,17 +807,17 @@ export default function App() {
                   onOpenEditSambutan={() => setIsEditSambutanOpen(true)}
                 />
               )}
-              {activeTab === '8_catatan_kegiatan' && <CatatanKegiatanView />}
-              {activeTab === '9_visi_misi' && <VisiMisiView />}
-              {activeTab === '10_mutakhorijin' && <MutakhorijinView />}
-              {activeTab === '11_syahriyah' && <SyahriyahView />}
-              {activeTab === '12_jadwal_tahunan' && <JadwalTahunanView />}
-              {activeTab === '13_tata_tertib' && <TataTertibView />}
-              {activeTab === '14_syarat_pendaftaran' && <SyaratPendaftaranView />}
-              {activeTab === '15_fasilitas' && <FasilitasView />}
-              {activeTab === '16_ekstrakurikuler' && <EkstrakurikulerView />}
-              {activeTab === '17_prestasi' && <PrestasiView />}
-              {activeTab === '18_kontak_rekening' && <KontakRekeningView />}
+              {activeTab === '8_catatan_kegiatan' && <CatatanKegiatanView activeRole={activeRole} />}
+              {activeTab === '9_visi_misi' && <VisiMisiView activeRole={activeRole} />}
+              {activeTab === '10_mutakhorijin' && <MutakhorijinView activeRole={activeRole} />}
+              {activeTab === '11_syahriyah' && <SyahriyahView activeRole={activeRole} />}
+              {activeTab === '12_jadwal_tahunan' && <JadwalTahunanView activeRole={activeRole} />}
+              {activeTab === '13_tata_tertib' && <TataTertibView activeRole={activeRole} />}
+              {activeTab === '14_syarat_pendaftaran' && <SyaratPendaftaranView activeRole={activeRole} />}
+              {activeTab === '15_fasilitas' && <FasilitasView activeRole={activeRole} />}
+              {activeTab === '16_ekstrakurikuler' && <EkstrakurikulerView activeRole={activeRole} />}
+              {activeTab === '17_prestasi' && <PrestasiView activeRole={activeRole} />}
+              {activeTab === '18_kontak_rekening' && <KontakRekeningView activeRole={activeRole} />}
             </>
           )}
         </div>

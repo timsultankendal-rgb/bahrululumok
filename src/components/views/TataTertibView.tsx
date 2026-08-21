@@ -30,7 +30,7 @@ export const TataTertibView: React.FC<TataTertibViewProps> = ({
   activeRole,
   canEdit: explicitCanEdit,
 }) => {
-  const { canEdit } = useAccessPermission('13_tatatertib', activeRole, explicitCanEdit);
+  const { canEdit } = useAccessPermission('13_tata_tertib', activeRole, explicitCanEdit);
   const [activeKategori, setActiveKategori] = useState<'Murid' | 'Asatidz'>('Murid');
 
   const [list, setList] = useState<TataTertibItem[]>(() => {

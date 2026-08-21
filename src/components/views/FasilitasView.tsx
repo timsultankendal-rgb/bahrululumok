@@ -9,10 +9,20 @@ import {
   Eye
 } from 'lucide-react';
 import { FASILITAS_LIST } from '../../data/madrasahCompleteData';
-import { FasilitasItem } from '../../types';
+import { FasilitasItem, UserRole } from '../../types';
 import { playTapSound } from '../../utils/audio';
+import { useAccessPermission } from '../../hooks/useAccessPermission';
 
-export const FasilitasView: React.FC = () => {
+interface FasilitasViewProps {
+  activeRole?: UserRole;
+  canEdit?: boolean;
+}
+
+export const FasilitasView: React.FC<FasilitasViewProps> = ({
+  activeRole,
+  canEdit: explicitCanEdit,
+}) => {
+  const { canEdit } = useAccessPermission('15_fasilitas', activeRole, explicitCanEdit);
   const [selectedKategori, setSelectedKategori] = useState<string>('Semua');
 
   const filteredList = FASILITAS_LIST.filter(

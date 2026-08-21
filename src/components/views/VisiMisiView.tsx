@@ -31,7 +31,7 @@ export const VisiMisiView: React.FC<VisiMisiViewProps> = ({
   activeRole,
   canEdit: explicitCanEdit,
 }) => {
-  const { canEdit } = useAccessPermission('9_visimisi', activeRole, explicitCanEdit);
+  const { canEdit } = useAccessPermission('9_visi_misi', activeRole, explicitCanEdit);
   const [data, setData] = useState<{ visi: string; misi: string[]; tujuan: string[] }>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY_VISIMISI);

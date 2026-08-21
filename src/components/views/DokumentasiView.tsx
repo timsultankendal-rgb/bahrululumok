@@ -12,10 +12,20 @@ import {
   Eye
 } from 'lucide-react';
 import { DOKUMENTASI_LIST } from '../../data/madrasahCompleteData';
-import { DokumentasiItem } from '../../types';
+import { DokumentasiItem, UserRole } from '../../types';
 import { playTapSound } from '../../utils/audio';
+import { useAccessPermission } from '../../hooks/useAccessPermission';
 
-export const DokumentasiView: React.FC = () => {
+interface DokumentasiViewProps {
+  activeRole?: UserRole;
+  canEdit?: boolean;
+}
+
+export const DokumentasiView: React.FC<DokumentasiViewProps> = ({
+  activeRole,
+  canEdit: explicitCanEdit,
+}) => {
+  const { canEdit } = useAccessPermission('4_dokumentasi', activeRole, explicitCanEdit);
   const [activeFilter, setActiveFilter] = useState<'Semua' | 'Foto' | 'Video' | 'File Unduhan'>('Semua');
   const [selectedItem, setSelectedItem] = useState<DokumentasiItem | null>(null);
 

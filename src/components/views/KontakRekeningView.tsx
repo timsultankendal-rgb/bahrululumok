@@ -21,15 +21,26 @@ import {
   Printer
 } from 'lucide-react';
 import { KONTAK_REKENING_DATA } from '../../data/madrasahCompleteData';
+import { UserRole } from '../../types';
 import { playTapSound } from '../../utils/audio';
 import { 
   saveMenuRecordToFirestore, 
   subscribeMenuRecords 
 } from '../../services/firestoreService';
+import { useAccessPermission } from '../../hooks/useAccessPermission';
 
 const STORAGE_KEY_KONTAK = 'madrasah_kontak_rekening_data_v2';
 
-export const KontakRekeningView: React.FC = () => {
+interface KontakRekeningViewProps {
+  activeRole?: UserRole;
+  canEdit?: boolean;
+}
+
+export const KontakRekeningView: React.FC<KontakRekeningViewProps> = ({
+  activeRole,
+  canEdit: explicitCanEdit,
+}) => {
+  const { canEdit } = useAccessPermission('18_kontak_rekening', activeRole, explicitCanEdit);
   const [copiedRekening, setCopiedRekening] = useState<string | null>(null);
   const [data, setData] = useState(() => {
     try {
@@ -307,22 +318,24 @@ export const KontakRekeningView: React.FC = () => {
               Alamat Lengkap & Titik Lokasi Kampus
             </h3>
           </div>
-          <button
-            onClick={() => {
-              playTapSound();
-              setAlamatForm({
-                namaLembaga: data.namaLembaga,
-                alamatLengkap: data.alamatLengkap,
-                patokan: data.patokan,
-                googleMapsUrl: data.googleMapsUrl
-              });
-              setIsEditAlamatOpen(true);
-            }}
-            className="flex items-center gap-1 text-xs font-extrabold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-xl transition-colors cursor-pointer"
-          >
-            <Edit2 className="w-3.5 h-3.5" />
-            <span>Edit Alamat</span>
-          </button>
+          {canEdit && (
+            <button
+              onClick={() => {
+                playTapSound();
+                setAlamatForm({
+                  namaLembaga: data.namaLembaga,
+                  alamatLengkap: data.alamatLengkap,
+                  patokan: data.patokan,
+                  googleMapsUrl: data.googleMapsUrl
+                });
+                setIsEditAlamatOpen(true);
+              }}
+              className="flex items-center gap-1 text-xs font-extrabold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-xl transition-colors cursor-pointer"
+            >
+              <Edit2 className="w-3.5 h-3.5" />
+              <span>Edit Alamat</span>
+            </button>
+          )}
         </div>
 
         <div className="space-y-1.5 text-xs text-slate-700">
@@ -352,16 +365,18 @@ export const KontakRekeningView: React.FC = () => {
               Hotline & Layanan WhatsApp Kantor ({kontakList.length})
             </h3>
           </div>
-          <button
-            onClick={() => {
-              playTapSound();
-              setIsEditKontakOpen(true);
-            }}
-            className="flex items-center gap-1 text-xs font-extrabold text-teal-700 bg-teal-50 hover:bg-teal-100 px-3 py-1.5 rounded-xl transition-colors cursor-pointer"
-          >
-            <Edit2 className="w-3.5 h-3.5" />
-            <span>Kelola Hotline</span>
-          </button>
+          {canEdit && (
+            <button
+              onClick={() => {
+                playTapSound();
+                setIsEditKontakOpen(true);
+              }}
+              className="flex items-center gap-1 text-xs font-extrabold text-teal-700 bg-teal-50 hover:bg-teal-100 px-3 py-1.5 rounded-xl transition-colors cursor-pointer"
+            >
+              <Edit2 className="w-3.5 h-3.5" />
+              <span>Kelola Hotline</span>
+            </button>
+          )}
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -399,16 +414,18 @@ export const KontakRekeningView: React.FC = () => {
               Tautan Group WhatsApp Resmi ({groupWaList.length})
             </h3>
           </div>
-          <button
-            onClick={() => {
-              playTapSound();
-              setIsEditGroupWaOpen(true);
-            }}
-            className="flex items-center gap-1 text-xs font-extrabold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-xl transition-colors cursor-pointer"
-          >
-            <Edit2 className="w-3.5 h-3.5" />
-            <span>Kelola Group WA</span>
-          </button>
+          {canEdit && (
+            <button
+              onClick={() => {
+                playTapSound();
+                setIsEditGroupWaOpen(true);
+              }}
+              className="flex items-center gap-1 text-xs font-extrabold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-xl transition-colors cursor-pointer"
+            >
+              <Edit2 className="w-3.5 h-3.5" />
+              <span>Kelola Group WA</span>
+            </button>
+          )}
         </div>
 
         <div className="space-y-2">
@@ -445,16 +462,18 @@ export const KontakRekeningView: React.FC = () => {
               Nomor Rekening Bank Resmi Madrasah ({rekeningList.length})
             </h3>
           </div>
-          <button
-            onClick={() => {
-              playTapSound();
-              setIsEditRekeningOpen(true);
-            }}
-            className="flex items-center gap-1 text-xs font-extrabold text-blue-700 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-xl transition-colors cursor-pointer"
-          >
-            <Edit2 className="w-3.5 h-3.5" />
-            <span>Kelola Rekening Bank</span>
-          </button>
+          {canEdit && (
+            <button
+              onClick={() => {
+                playTapSound();
+                setIsEditRekeningOpen(true);
+              }}
+              className="flex items-center gap-1 text-xs font-extrabold text-blue-700 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-xl transition-colors cursor-pointer"
+            >
+              <Edit2 className="w-3.5 h-3.5" />
+              <span>Kelola Rekening Bank</span>
+            </button>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
