@@ -15,7 +15,10 @@ import {
   Sparkles,
   HelpCircle,
   Download,
-  Plus
+  Plus,
+  Printer,
+  TrendingUp,
+  Star
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { 
@@ -25,9 +28,13 @@ import {
   CBTExam, 
   StudentProfile, 
   TeacherProfile,
-  UserRole 
+  UserRole,
+  RaportSantri
 } from '../../types';
 import { JADWAL_PELAJARAN, TAHFIDZ_HISTORY, CBT_EXAM_DATA } from '../../data/mockData';
+import { generateDefaultRaport } from '../../data/raportData';
+import { subscribeRaportFromFirestore } from '../../services/firestoreService';
+import { CetakRaportModal } from '../raport/CetakRaportModal';
 import { playTapSound, playSuccessSound } from '../../utils/audio';
 
 interface AkademikTabProps {
@@ -60,6 +67,28 @@ export const AkademikTab: React.FC<AkademikTabProps> = ({
 
   // Upload dialog simulation
   const [uploadingTugasId, setUploadingTugasId] = useState<string | null>(null);
+
+  // E-Raport states
+  const [selectedCawu, setSelectedCawu] = useState<'Cawu 1' | 'Cawu 2' | 'Cawu 3'>('Cawu 1');
+  const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
+  const [cloudRaportMap, setCloudRaportMap] = useState<Record<string, RaportSantri>>({});
+
+  // Subscribe to real-time Raport changes
+  useEffect(() => {
+    const unsub = subscribeRaportFromFirestore((list) => {
+      if (list && list.length > 0) {
+        const map: Record<string, RaportSantri> = {};
+        list.forEach((r) => {
+          if (r.id) map[r.id] = r;
+        });
+        setCloudRaportMap(map);
+      }
+    });
+    return () => unsub();
+  }, []);
+
+  const studentRaportKey = `rap_mrd-4_${selectedCawu.replace(/\s+/g, '').toLowerCase()}`;
+  const studentRaport: RaportSantri = cloudRaportMap[studentRaportKey] || generateDefaultRaport('mrd-4', selectedCawu);
 
   // CBT Timer
   useEffect(() => {
@@ -619,63 +648,139 @@ export const AkademikTab: React.FC<AkademikTabProps> = ({
       {/* ================= 5. E-RAPORT VIEW ================= */}
       {activeSubTab === 'raport' && (
         <div className="flex flex-col gap-3">
-          <div className="p-4 rounded-3xl bg-white border border-slate-200/80 shadow-xs">
-            <div className="flex items-center justify-between mb-3">
+          <div className="p-4 rounded-3xl bg-white border border-slate-200/80 shadow-xs space-y-4">
+            
+            {/* Header & Cawu Switcher */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
               <div>
-                <span className="text-xs text-slate-500 font-medium">Rapor Hasil Belajar</span>
-                <h4 className="text-xs font-bold text-slate-800">Semester Ganjil 2025/2026</h4>
+                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Laporan Hasil Belajar</span>
+                <h4 className="text-sm font-extrabold text-slate-900">
+                  E-Raport Diniyah • {selectedCawu} (2025/2026)
+                </h4>
               </div>
-              <button
-                onClick={() => {
-                  playTapSound();
-                  alert('Mengunduh E-Raport Resmi Format PDF Kemenag RI...');
-                }}
-                className="flex items-center gap-1 px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-emerald-700 rounded-xl text-xs font-bold border border-slate-200 shadow-2xs"
-              >
-                <Download className="w-3.5 h-3.5" />
-                <span>Unduh PDF</span>
-              </button>
-            </div>
 
-            {/* Subject Grade Table */}
-            <div className="flex flex-col gap-2">
-              {[
-                { mapel: "Al-Qur'an Hadits", kkm: 75, nilai: 94, predikat: 'A (Mumtaz)' },
-                { mapel: 'Fiqih Ibadah', kkm: 75, nilai: 96, predikat: 'A (Mumtaz)' },
-                { mapel: 'Akidah Akhlak', kkm: 75, nilai: 92, predikat: 'A (Mumtaz)' },
-                { mapel: 'Bahasa Arab', kkm: 75, nilai: 88, predikat: 'B+ (Jayyid Jiddan)' },
-                { mapel: 'Matematika Terapan', kkm: 70, nilai: 85, predikat: 'B (Jayyid)' },
-                { mapel: 'IPA Terpadu', kkm: 70, nilai: 90, predikat: 'A (Mumtaz)' },
-              ].map((m, idx) => (
-                <div
-                  key={idx}
-                  className="flex items-center justify-between p-2.5 rounded-2xl bg-slate-50 border border-slate-200/70 text-xs"
-                >
-                  <div>
-                    <h5 className="font-bold text-slate-800">{m.mapel}</h5>
-                    <span className="text-[10px] text-slate-500 font-medium">KKM: {m.kkm}</span>
-                  </div>
-
-                  <div className="text-right">
-                    <div className="font-bold text-emerald-700 font-mono text-sm">{m.nilai}</div>
-                    <span className="text-[10px] text-emerald-800 font-semibold">{m.predikat}</span>
-                  </div>
+              <div className="flex items-center gap-2 flex-wrap">
+                {/* Cawu Buttons */}
+                <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
+                  {(['Cawu 1', 'Cawu 2', 'Cawu 3'] as const).map((cw) => (
+                    <button
+                      key={cw}
+                      onClick={() => {
+                        playTapSound();
+                        setSelectedCawu(cw);
+                      }}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                        selectedCawu === cw
+                          ? 'bg-emerald-700 text-white shadow-2xs'
+                          : 'text-slate-600 hover:bg-slate-200'
+                      }`}
+                    >
+                      {cw}
+                    </button>
+                  ))}
                 </div>
-              ))}
-            </div>
 
-            {/* Sikap & Wali Note */}
-            <div className="mt-3 p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs">
-              <span className="font-bold text-emerald-800 block mb-1">Catatan Wali Kelas:</span>
-              <p className="text-[11px] text-slate-700 leading-relaxed italic">
-                "Ananda Rayhan menunjukkan kemajuan luar biasa dalam adab, disiplin shalat berjamaah, dan hafalan tahfidz Juz 30. Pertahankan prestasi dan terus istiqomah."
-              </p>
-              <div className="text-right mt-1 text-[10px] text-emerald-700 font-bold">
-                — Ustadz Ahmad Mufid, M.Pd.I
+                <button
+                  onClick={() => {
+                    playTapSound();
+                    setIsPrintModalOpen(true);
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-xs cursor-pointer active:scale-95"
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  <span>Cetak Rapor Resmi</span>
+                </button>
               </div>
             </div>
+
+            {/* Quick Metrics Bar */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              <div className="p-3 bg-emerald-50/80 rounded-2xl border border-emerald-200/80 text-center">
+                <span className="text-[10px] font-bold text-emerald-800 uppercase block">Rata-Rata</span>
+                <span className="text-xl font-black font-mono text-emerald-950">{studentRaport.rataRata}</span>
+              </div>
+              <div className="p-3 bg-amber-50/80 rounded-2xl border border-amber-200/80 text-center">
+                <span className="text-[10px] font-bold text-amber-800 uppercase block">Peringkat</span>
+                <span className="text-xl font-black font-mono text-amber-950">
+                  Ke-{studentRaport.peringkat} <span className="text-[10px] font-semibold text-amber-700">/{studentRaport.totalSiswa || 32}</span>
+                </span>
+              </div>
+              <div className="p-3 bg-blue-50/80 rounded-2xl border border-blue-200/80 text-center">
+                <span className="text-[10px] font-bold text-blue-800 uppercase block">Kehadiran</span>
+                <span className="text-xs font-black font-mono text-blue-950 block mt-1">
+                  S:{studentRaport.kehadiran?.sakit ?? 0} • I:{studentRaport.kehadiran?.izin ?? (studentRaport.kehadiran?.ijin ?? 0)} • A:{studentRaport.kehadiran?.alpa ?? 0}
+                </span>
+              </div>
+              <div className="p-3 bg-purple-50/80 rounded-2xl border border-purple-200/80 text-center">
+                <span className="text-[10px] font-bold text-purple-800 uppercase block">Total Nilai</span>
+                <span className="text-xl font-black font-mono text-purple-950">{studentRaport.totalNilai}</span>
+              </div>
+            </div>
+
+            {/* 11 Subject Grades List */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between text-xs px-1">
+                <span className="font-extrabold text-slate-700">11 Mata Pelajaran Kurikulum Diniyah:</span>
+                <span className="text-[10px] text-slate-500 font-medium">Standar KKM 65-75</span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {studentRaport.nilaiList.map((m, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-center justify-between p-2.5 rounded-2xl bg-slate-50 border border-slate-200/70 text-xs hover:bg-slate-100/80 transition-colors"
+                  >
+                    <div className="min-w-0 pr-2">
+                      <h5 className="font-extrabold text-slate-800 truncate">{m.namaMapel}</h5>
+                      <span className="text-[10px] text-slate-500 font-medium block truncate">
+                        KKM: {m.kkm} • {m.kitab || 'Kitab Diniyah'}
+                      </span>
+                    </div>
+
+                    <div className="text-right shrink-0">
+                      <div className="font-bold text-emerald-800 font-mono text-sm">{m.nilaiAngka}</div>
+                      <span className="text-[10px] text-emerald-900 font-semibold bg-emerald-100 px-1.5 py-0.5 rounded-md">
+                        {m.predikat}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Tahfidz & Wali Note */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200 text-xs space-y-1">
+                <span className="font-bold text-slate-600 block text-[11px]">Hafalan Al-Qur'an & Doa:</span>
+                <p className="text-xs font-extrabold text-emerald-800">{studentRaport.hafalanJuz || '-'}</p>
+                <div className="pt-1 text-[10px] text-slate-500">
+                  <strong>Akhlak:</strong> {studentRaport.sikapDanAkhlak || 'Sangat Baik (A)'}
+                </div>
+              </div>
+
+              <div className="p-3 rounded-2xl bg-emerald-50/80 border border-emerald-200 text-xs flex flex-col justify-between">
+                <div>
+                  <span className="font-bold text-emerald-900 block mb-1">Catatan Wali Kelas:</span>
+                  <p className="text-[11px] text-slate-700 leading-relaxed italic">
+                    "{studentRaport.catatanGuru}"
+                  </p>
+                </div>
+                <div className="text-right mt-2 text-[10px] text-emerald-800 font-bold">
+                  — {studentRaport.namaWaliKelas || 'Ust. Ahmad Mufid, M.Pd.I.'}
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
+      )}
+
+      {/* Official Print & PDF Modal */}
+      {isPrintModalOpen && (
+        <CetakRaportModal
+          raport={studentRaport}
+          onClose={() => setIsPrintModalOpen(false)}
+        />
       )}
     </div>
   );

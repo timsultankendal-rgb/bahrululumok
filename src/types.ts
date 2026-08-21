@@ -163,6 +163,19 @@ export interface DokumentasiItem {
 }
 
 // 5. RAPORT SANTRI
+export interface RaportNilaiItem {
+  id?: string;
+  namaMapel: string;
+  kitab?: string;
+  kkm: number;
+  nilaiTugas?: number;
+  nilaiUjian?: number;
+  nilaiAngka: number; // Nilai Akhir (0-100)
+  nilaiHuruf: string; // Terbilang (misal: "Delapan Puluh Delapan")
+  predikat: string; // "A (Mumtaz)", "B+ (Jayyid Jiddan)", "B (Jayyid)", "C (Maqbul)", "D (Rosib)"
+  keterangan: string; // Capaian kompetensi
+}
+
 export interface MataPelajaranNilai {
   namaMapel: string;
   kkm: number;
@@ -174,12 +187,41 @@ export interface MataPelajaranNilai {
 
 export interface RaportSantri {
   id: string;
+  santriId?: string;
   noInduk: string;
+  nisn?: string;
   namaSantri?: string;
-  nama?: string;
+  nama: string;
   kelas: string;
   cawu: 'Cawu 1' | 'Cawu 2' | 'Cawu 3' | string;
   tahunAjaran: string;
+  semester?: string;
+  totalNilai: number;
+  rataRata: number;
+  peringkat: number;
+  totalSantri?: number;
+  totalSiswa?: number;
+  catatanGuru: string;
+  sikapDanAkhlak?: string;
+  hafalanJuz?: string;
+  nilaiList: RaportNilaiItem[];
+  kehadiran?: {
+    sakit: number;
+    ijin?: number;
+    izin?: number;
+    alpha?: number;
+    alpa?: number;
+  };
+  ekskul?: Array<{
+    kegiatan: string;
+    nilai: string;
+    keterangan: string;
+  }>;
+  keputusan?: string;
+  namaWaliKelas?: string;
+  namaKepalaMadrasah?: string;
+  tanggalRaport?: string;
+  updatedAt?: string;
   nilaiMapel?: {
     fiqih: MataPelajaranNilai;
     tauhid: MataPelajaranNilai;
@@ -192,20 +234,6 @@ export interface RaportSantri {
     hadist: MataPelajaranNilai;
     imlakPegon: MataPelajaranNilai;
     hafalan: MataPelajaranNilai;
-  };
-  totalNilai: number;
-  rataRata: number;
-  peringkat: number;
-  totalSantri?: number;
-  totalSiswa?: number;
-  catatanGuru: string;
-  sikapDanAkhlak?: any;
-  hafalanJuz?: any;
-  nilaiList?: any[];
-  kehadiran?: {
-    sakit: number;
-    ijin: number;
-    alpha: number;
   };
 }
 export type RaportSantriData = RaportSantri;

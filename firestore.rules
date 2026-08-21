@@ -58,6 +58,12 @@ service cloud.firestore {
       allow create, update, delete: if isValidId(tabunganId);
     }
 
+    // Raport Santri collection
+    match /raport_santri/{raportId} {
+      allow get, list: if true;
+      allow create, update, delete: if isValidId(raportId);
+    }
+
     // Connection test document
     match /test/{docId} {
       allow read, write: if true;

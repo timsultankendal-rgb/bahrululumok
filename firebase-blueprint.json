@@ -124,6 +124,34 @@
         "terakhirUpdate": { "type": "string" }
       },
       "required": ["id", "noInduk", "nama", "kelas", "jumlahTabungan", "riwayat"]
+    },
+    "RaportSantri": {
+      "title": "Buku E-Raport Santri",
+      "description": "Laporan hasil belajar cawu, 11 mapel diniyah KTSP, presensi, ekskul, dan catatan wali kelas",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "santriId": { "type": "string" },
+        "noInduk": { "type": "string" },
+        "nisn": { "type": "string" },
+        "nama": { "type": "string" },
+        "kelas": { "type": "string" },
+        "cawu": { "type": "string" },
+        "tahunAjaran": { "type": "string" },
+        "totalNilai": { "type": "number" },
+        "rataRata": { "type": "number" },
+        "peringkat": { "type": "number" },
+        "totalSiswa": { "type": "number" },
+        "sikapDanAkhlak": { "type": "string" },
+        "hafalanJuz": { "type": "string" },
+        "catatanGuru": { "type": "string" },
+        "nilaiList": { "type": "array" },
+        "kehadiran": { "type": "object" },
+        "ekskul": { "type": "array" },
+        "keputusan": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "santriId", "nama", "kelas", "cawu", "nilaiList"]
     }
   },
   "firestore": {
@@ -158,6 +186,10 @@
     "/tabungan_santri/{tabunganId}": {
       "schema": "TabunganSantri",
       "description": "Data rekening dan mutasi tabungan santri"
+    },
+    "/raport_santri/{raportId}": {
+      "schema": "RaportSantri",
+      "description": "Data e-raport nilai santri per cawu"
     }
   }
 }

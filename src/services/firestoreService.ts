@@ -12,7 +12,7 @@ import {
   Unsubscribe
 } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
-import { PresensiMuridItem, PresensiAsatidzItem, BiodataAsatidz, BiodataMurid, TabunganSantri, RiwayatTabunganItem } from '../types';
+import { PresensiMuridItem, PresensiAsatidzItem, BiodataAsatidz, BiodataMurid, TabunganSantri, RiwayatTabunganItem, RaportSantri } from '../types';
 
 /**
  * Standardized Generic CRUD Handlers for Firestore
@@ -421,6 +421,34 @@ export function subscribeTabunganFromFirestore(
   onError?: (err: Error) => void
 ): Unsubscribe {
   return subscribeCollection<TabunganSantri>('tabungan_santri', callback, onError);
+}
+
+/**
+ * RAPORT SANTRI CLOUD FIRESTORE HELPERS
+ * Realtime synchronization for student report cards across all devices
+ */
+export async function saveRaportToFirestore(raport: RaportSantri): Promise<void> {
+  const docId = raport.id || `rap_${raport.santriId || raport.noInduk}_${raport.cawu?.replace(/\s+/g, '').toLowerCase()}`;
+  await createDocument<RaportSantri>('raport_santri', docId, {
+    ...raport,
+    id: docId,
+    updatedAt: new Date().toISOString()
+  });
+}
+
+export async function deleteRaportFromFirestore(docId: string): Promise<void> {
+  await deleteDocument('raport_santri', docId);
+}
+
+export function subscribeRaportFromFirestore(
+  callback: (list: RaportSantri[]) => void,
+  onError?: (err: Error) => void
+): Unsubscribe {
+  return subscribeCollection<RaportSantri>('raport_santri', callback, onError);
+}
+
+export async function getRaportFromFirestore(docId: string): Promise<RaportSantri | null> {
+  return getDocument<RaportSantri>('raport_santri', docId);
 }
 
 
