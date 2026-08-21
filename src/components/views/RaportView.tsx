@@ -39,11 +39,17 @@ import { playTapSound } from '../../utils/audio';
 import { useAccessPermission } from '../../hooks/useAccessPermission';
 import { 
   saveRaportToFirestore, 
-  subscribeRaportFromFirestore 
+  subscribeRaportFromFirestore,
+  subscribeMenuRecords
 } from '../../services/firestoreService';
+import { PROFILE_MADRASAH_DATA, KONTAK_REKENING_DATA } from '../../data/madrasahCompleteData';
+import { DEFAULT_BRANDING, AppBrandingConfig } from '../modals/AppBrandingModal';
 import { CetakRaportModal } from '../raport/CetakRaportModal';
 
 const STORAGE_KEY_RAPORT_MAP = 'madrasah_raport_all_v3';
+const STORAGE_KEY_PROFILE = 'madrasah_profile_data_v2';
+const STORAGE_KEY_BRANDING = 'madrasah_app_branding_v2';
+const STORAGE_KEY_KONTAK = 'madrasah_kontak_rekening_data_v2';
 
 interface RaportViewProps {
   activeRole?: UserRole;
@@ -55,6 +61,58 @@ export const RaportView: React.FC<RaportViewProps> = ({
   canEdit: explicitCanEdit,
 }) => {
   const { canEdit } = useAccessPermission('5_raport', activeRole, explicitCanEdit);
+  
+  // Profile, Branding, Kontak data
+  const [profile, setProfile] = useState(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_PROFILE);
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return PROFILE_MADRASAH_DATA;
+  });
+
+  const [branding, setBranding] = useState<AppBrandingConfig>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_BRANDING);
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return DEFAULT_BRANDING;
+  });
+
+  const [kontakData, setKontakData] = useState(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_KONTAK);
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return KONTAK_REKENING_DATA;
+  });
+
+  // Subscribe to Profile, Branding, Kontak
+  useEffect(() => {
+    const unsubProfile = subscribeMenuRecords<typeof PROFILE_MADRASAH_DATA>('profile_madrasah', (records) => {
+      if (records && records.length > 0 && records[0].payload) {
+        setProfile(records[0].payload);
+      }
+    });
+
+    const unsubBranding = subscribeMenuRecords<AppBrandingConfig>('app_branding', (records) => {
+      if (records && records.length > 0 && records[0].payload) {
+        setBranding(records[0].payload);
+      }
+    });
+
+    const unsubKontak = subscribeMenuRecords<typeof KONTAK_REKENING_DATA>('kontak_rekening', (records) => {
+      if (records && records.length > 0 && records[0].payload) {
+        setKontakData(records[0].payload);
+      }
+    });
+
+    return () => {
+      unsubProfile();
+      unsubBranding();
+      unsubKontak();
+    };
+  }, []);
   
   // View states
   const [viewMode, setViewMode] = useState<'individual' | 'leger'>('individual');
@@ -634,8 +692,47 @@ ${currentRaport.nilaiList.map((n, i) => `${i + 1}. ${n.namaMapel}: *${n.nilaiAng
 
       {/* ===================== VIEW MODE 2: REKAP NILAI KELAS (LEGER) ===================== */}
       {viewMode === 'leger' && (
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
-          <div className="p-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div className="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden print:border-none print:shadow-none print:rounded-none">
+          
+          {/* Print-Only KOP Surat Madrasah */}
+          <div className="hidden print:block text-center border-b-4 border-double border-slate-900 pb-3 mb-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="w-16 h-16 shrink-0 flex items-center justify-center">
+                {branding.logoUrl ? (
+                  <img
+                    src={branding.logoUrl}
+                    alt={profile.namaLembaga}
+                    className="w-16 h-16 object-contain rounded-xl p-1 bg-white"
+                  />
+                ) : (
+                  <div className="w-16 h-16 rounded-xl bg-emerald-800 text-amber-300 font-bold flex flex-col items-center justify-center p-1">
+                    <span className="text-[8px] font-bold">LP MA'ARIF</span>
+                    <span className="text-xl">★</span>
+                  </div>
+                )}
+              </div>
+              <div className="flex-1 px-3 text-center">
+                <h4 className="text-xs font-bold text-slate-800 uppercase">{profile.naungan}</h4>
+                <h2 className="text-base font-black text-slate-900 uppercase">{profile.namaLembaga || branding.institutionName}</h2>
+                <p className="text-[10px] font-semibold text-slate-600">
+                  {profile.akreditasi} • {profile.nomorStatistikMadrasah} • {profile.npsn}
+                </p>
+                <p className="text-[9px] text-slate-500">{profile.alamat || kontakData.alamatLengkap}</p>
+              </div>
+              <div className="w-16 h-16 shrink-0 flex items-center justify-center">
+                <div className="w-16 h-16 rounded-xl bg-emerald-900 text-white font-bold flex flex-col items-center justify-center p-1">
+                  <span className="text-[8px] text-amber-300">KEMENAG</span>
+                  <span className="text-base">📖</span>
+                </div>
+              </div>
+            </div>
+            <div className="text-center pt-2">
+              <h3 className="text-sm font-black uppercase text-slate-900 underline">LEGER REKAPITULASI HASIL EVALUASI SANTRI</h3>
+              <p className="text-[11px] font-bold text-emerald-800 mt-0.5">{selectedClass} • {selectedCawu} • TAHUN AJARAN 2025/2026</p>
+            </div>
+          </div>
+
+          <div className="p-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 print:hidden">
             <div>
               <h3 className="font-black text-xs sm:text-sm text-slate-800 flex items-center gap-2">
                 <Users className="w-4 h-4 text-emerald-700" />
@@ -737,6 +834,27 @@ ${currentRaport.nilaiList.map((n, i) => `${i + 1}. ${n.namaMapel}: *${n.nilaiAng
                 })}
               </tbody>
             </table>
+          </div>
+
+          {/* Print-Only Leger Signature Block */}
+          <div className="hidden print:block pt-8 px-6 pb-6 text-xs text-slate-800">
+            <div className="text-right font-semibold mb-6">
+              Kendal, 28 November 2025
+            </div>
+            <div className="grid grid-cols-2 text-center gap-8">
+              <div className="flex flex-col justify-between h-28">
+                <span className="font-bold">Wali Kelas / Asatidz Pengampu,</span>
+                <div className="border-b border-slate-400 mx-8 pb-1">
+                  <span className="font-bold">Ust. Ahmad Mufid, M.Pd.I.</span>
+                </div>
+              </div>
+              <div className="flex flex-col justify-between h-28 relative">
+                <span className="font-bold">Mengetahui,<br />Kepala Madrasah</span>
+                <div className="border-b border-slate-400 mx-8 pb-1">
+                  <span className="font-black underline">{profile.kepalaMadrasah || 'KH. Abdullah Syukri, Lc., M.A.'}</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}

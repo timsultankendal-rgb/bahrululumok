@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   X, 
   Printer, 
@@ -14,6 +14,13 @@ import {
 } from 'lucide-react';
 import { RaportSantri } from '../../types';
 import { playTapSound } from '../../utils/audio';
+import { PROFILE_MADRASAH_DATA, KONTAK_REKENING_DATA } from '../../data/madrasahCompleteData';
+import { DEFAULT_BRANDING, AppBrandingConfig } from '../modals/AppBrandingModal';
+import { subscribeMenuRecords } from '../../services/firestoreService';
+
+const STORAGE_KEY_PROFILE = 'madrasah_profile_data_v2';
+const STORAGE_KEY_BRANDING = 'madrasah_app_branding_v2';
+const STORAGE_KEY_KONTAK = 'madrasah_kontak_rekening_data_v2';
 
 interface CetakRaportModalProps {
   raport: RaportSantri;
@@ -21,15 +28,77 @@ interface CetakRaportModalProps {
 }
 
 export const CetakRaportModal: React.FC<CetakRaportModalProps> = ({ raport, onClose }) => {
+  // 1. Madrasah Profile state (with local storage & firestore fallback)
+  const [profile, setProfile] = useState(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_PROFILE);
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return PROFILE_MADRASAH_DATA;
+  });
+
+  // 2. App Branding / Logo state
+  const [branding, setBranding] = useState<AppBrandingConfig>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_BRANDING);
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return DEFAULT_BRANDING;
+  });
+
+  // 3. Kontak & Info state
+  const [kontakData, setKontakData] = useState(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_KONTAK);
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return KONTAK_REKENING_DATA;
+  });
+
+  // Subscribe to real-time Cloud updates for Profile, Branding, and Kontak
+  useEffect(() => {
+    const unsubProfile = subscribeMenuRecords<typeof PROFILE_MADRASAH_DATA>('profile_madrasah', (records) => {
+      if (records && records.length > 0 && records[0].payload) {
+        setProfile(records[0].payload);
+      }
+    });
+
+    const unsubBranding = subscribeMenuRecords<AppBrandingConfig>('app_branding', (records) => {
+      if (records && records.length > 0 && records[0].payload) {
+        setBranding(records[0].payload);
+      }
+    });
+
+    const unsubKontak = subscribeMenuRecords<typeof KONTAK_REKENING_DATA>('kontak_rekening', (records) => {
+      if (records && records.length > 0 && records[0].payload) {
+        setKontakData(records[0].payload);
+      }
+    });
+
+    return () => {
+      unsubProfile();
+      unsubBranding();
+      unsubKontak();
+    };
+  }, []);
+
   const handlePrint = () => {
     playTapSound();
     window.print();
   };
 
+  const namaMadrasah = profile.namaLembaga || branding.institutionName || 'Madrasah Diniyah Takmiliyah Al-Ikhlas';
+  const yayasanNaungan = profile.naungan || 'Yayasan Pendidikan Islam Al-Ikhlas Kendal';
+  const alamatMadrasah = profile.alamat || kontakData.alamatLengkap;
+  const kepalaMadrasah = profile.kepalaMadrasah || raport.namaKepalaMadrasah || 'KH. Abdullah Syukri, Lc., M.A.';
+  const primaryPhone = kontakData.kontak?.[0]?.noTelp || '(0294) 381234';
+  const hotlineWA = kontakData.kontak?.[1]?.noTelp || '';
+
   const handleShareWhatsApp = () => {
     playTapSound();
     const text = `*LAPORAN HASIL BELAJAR SANTRI (E-RAPORT)*
-*MADRASAH DINIYAH SALAFIYAH WATHONIYAH KENDAL*
+*${namaMadrasah.toUpperCase()}*
+_${yayasanNaungan}_
 =================================
 👤 *Nama Santri:* ${raport.nama}
 📌 *No. Induk / NIS:* ${raport.noInduk}
@@ -47,7 +116,9 @@ ${raport.nilaiList.map((n, i) => `${i + 1}. ${n.namaMapel}: *${n.nilaiAngka}* ($
 ---------------------------------
 ✨ *Keputusan:* ${raport.keputusan || 'Tuntas dan Naik Tingkat'}
 
-_Dokumen resmi e-Raport Madrasahku Mobile Cloud System_`;
+🏛️ *Kepala Madrasah:* ${kepalaMadrasah}
+📍 *Alamat:* ${alamatMadrasah}
+_Dokumen resmi e-Raport ${branding.appName || 'MadrasahKu'} Mobile Cloud System_`;
 
     const encodedText = encodeURIComponent(text);
     window.open(`https://api.whatsapp.com/send?text=${encodedText}`, '_blank');
@@ -101,33 +172,59 @@ _Dokumen resmi e-Raport Madrasahku Mobile Cloud System_`;
         <div className="p-4 sm:p-8 space-y-6 text-slate-900 bg-white print:p-6" id="printable-raport-doc">
           
           {/* 1. KOP SURAT MADRASAH RESMI */}
-          <div className="text-center border-b-4 border-double border-slate-900 pb-4 relative">
+          <div className="text-center border-b-4 border-double border-slate-900 pb-3 relative">
             <div className="flex items-center justify-between mb-2">
-              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-emerald-800 text-amber-300 font-bold flex flex-col items-center justify-center p-1 border-2 border-amber-400 shadow-xs">
-                <span className="text-[9px] font-extrabold uppercase leading-tight text-center">LP MA'ARIF NU</span>
-                <span className="text-xl sm:text-2xl font-black">★</span>
-                <span className="text-[8px] font-bold text-center">KENDAL</span>
+              {/* Left Logo / Lambang Madrasah */}
+              <div className="w-16 h-16 sm:w-20 sm:h-20 shrink-0 flex items-center justify-center">
+                {branding.logoUrl ? (
+                  <img
+                    src={branding.logoUrl}
+                    alt={namaMadrasah}
+                    className="w-16 h-16 sm:w-20 sm:h-20 object-contain rounded-xl border border-slate-200 p-1 bg-white shadow-2xs"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLElement).style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-emerald-800 text-amber-300 font-bold flex flex-col items-center justify-center p-1 border-2 border-amber-400 shadow-xs">
+                    <span className="text-[9px] font-extrabold uppercase leading-tight text-center">LP MA'ARIF NU</span>
+                    <span className="text-xl sm:text-2xl font-black">★</span>
+                    <span className="text-[8px] font-bold text-center">KENDAL</span>
+                  </div>
+                )}
               </div>
 
-              <div className="flex-1 px-3">
-                <h4 className="text-xs sm:text-sm font-extrabold text-emerald-900 tracking-wider uppercase">
-                  YAYASAN PENDIDIKAN ISLAM WATHONIYAH
+              {/* Center Madrasah Identity */}
+              <div className="flex-1 px-3 text-center">
+                <h4 className="text-xs sm:text-sm font-extrabold text-emerald-950 tracking-wider uppercase">
+                  {yayasanNaungan}
                 </h4>
                 <h2 className="text-base sm:text-xl font-black text-slate-900 uppercase tracking-tight mt-0.5">
-                  MADRASAH DINIYAH SALAFIYAH WATHONIYAH
+                  {namaMadrasah}
                 </h2>
-                <p className="text-[10px] sm:text-[11px] font-semibold text-slate-600 mt-0.5">
-                  STATUS TERAKREDITASI "A" • NSM: 311233240019 • NPSN: 69987123
+                <p className="text-[10px] sm:text-[11px] font-bold text-slate-700 mt-0.5">
+                  {profile.akreditasi ? `${profile.akreditasi} • ` : ''}
+                  {profile.nomorStatistikMadrasah ? `${profile.nomorStatistikMadrasah} • ` : ''}
+                  {profile.npsn || 'NPSN : 69987654'}
                 </p>
-                <p className="text-[10px] text-slate-500 mt-0.5">
-                  Jl. Kyai Asy'ari No. 17, Kauman, Sukorejo, Kab. Kendal, Jawa Tengah 51363 | Telp: (0294) 451234
+                <p className="text-[10px] text-slate-600 mt-0.5 leading-snug">
+                  {alamatMadrasah}
+                  {primaryPhone ? ` | Telp: ${primaryPhone}` : ''}
+                  {hotlineWA ? ` | Hotline: ${hotlineWA}` : ''}
                 </p>
               </div>
 
-              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-emerald-900 text-white font-bold flex flex-col items-center justify-center p-1 border-2 border-emerald-600 shadow-xs">
-                <span className="text-[9px] font-extrabold uppercase leading-tight text-center text-amber-300">KEMENAG RI</span>
-                <span className="text-lg font-black">📖</span>
-                <span className="text-[8px] font-bold text-center text-teal-200">TERAKREDITASI</span>
+              {/* Right Logo / Lambang Kemenag RI */}
+              <div className="w-16 h-16 sm:w-20 sm:h-20 shrink-0 flex items-center justify-center">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-emerald-900 text-white font-bold flex flex-col items-center justify-center p-1 border-2 border-emerald-600 shadow-xs">
+                  <span className="text-[9px] font-extrabold uppercase leading-tight text-center text-amber-300">
+                    {branding.kemenagText || 'KEMENAG RI'}
+                  </span>
+                  <span className="text-lg font-black">📖</span>
+                  <span className="text-[8px] font-bold text-center text-teal-200">
+                    {profile.akreditasi ? 'TERAKREDITASI' : 'DINIYAH'}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -338,14 +435,14 @@ _Dokumen resmi e-Raport Madrasahku Mobile Cloud System_`;
                 <span className="font-bold text-slate-700">Mengetahui,<br />Kepala Madrasah Diniyah</span>
                 
                 {/* Visual Official Stamp Badge */}
-                <div className="absolute top-8 left-1/2 -translate-x-1/2 w-20 h-20 border-2 border-dashed border-emerald-600/40 rounded-full flex flex-col items-center justify-center text-[7px] font-black text-emerald-700 uppercase p-1 rotate-[-12deg] pointer-events-none opacity-80">
-                  <span>MADRASAH DINIYAH</span>
-                  <span className="text-[10px] text-amber-600">★ ★ ★</span>
-                  <span>WATHONIYAH KENDAL</span>
+                <div className="absolute top-6 left-1/2 -translate-x-1/2 w-24 h-24 border-2 border-dashed border-emerald-600/50 rounded-full flex flex-col items-center justify-center text-[7px] font-black text-emerald-800 uppercase p-1 rotate-[-12deg] pointer-events-none opacity-80 select-none">
+                  <span className="truncate max-w-[85px] text-center">{namaMadrasah.slice(0, 24)}</span>
+                  <span className="text-[10px] text-amber-600 leading-none my-0.5">★ ★ ★</span>
+                  <span className="text-[7px]">KENDAL</span>
                 </div>
 
                 <div className="border-b border-slate-400 mx-4 pb-1">
-                  <span className="font-black text-slate-900 underline">{raport.namaKepalaMadrasah || 'KH. Abdullah Syukri, Lc.'}</span>
+                  <span className="font-black text-slate-900 underline">{kepalaMadrasah}</span>
                 </div>
               </div>
             </div>
