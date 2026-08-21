@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   User, 
   GraduationCap, 
@@ -25,7 +25,9 @@ import {
   RotateCcw,
   Eye,
   Filter,
-  UserCheck
+  UserCheck,
+  Camera,
+  Upload
 } from 'lucide-react';
 import { BIODATA_ASATIDZ_LIST, BIODATA_MURID_LIST } from '../../data/madrasahCompleteData';
 import { BiodataAsatidz, BiodataMurid, UserRole } from '../../types';
@@ -37,7 +39,8 @@ import {
   subscribeAsatidzFromFirestore,
   saveMuridToFirestore,
   deleteMuridFromFirestore,
-  subscribeMuridFromFirestore
+  subscribeMuridFromFirestore,
+  compressImageFile
 } from '../../services/firestoreService';
 
 const STORAGE_KEY_ASATIDZ = 'madrasah_biodata_asatidz_v2';
@@ -150,6 +153,43 @@ export const BiodataView: React.FC<BiodataViewProps> = ({
     tanggalMasukMadrasah: '15 Juli 2023',
     status: 'Aktif'
   });
+
+  const asatidzFileRef = useRef<HTMLInputElement>(null);
+  const muridFileRef = useRef<HTMLInputElement>(null);
+  const [isCompressingAsatidz, setIsCompressingAsatidz] = useState(false);
+  const [isCompressingMurid, setIsCompressingMurid] = useState(false);
+
+  const handleUploadAsatidzPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsCompressingAsatidz(true);
+    try {
+      const compressed = await compressImageFile(file, 360, 360, 0.8);
+      setFormAsatidz(prev => ({ ...prev, foto: compressed }));
+      showToast('📸 Foto Asatidz siap disimpan ke Cloud!');
+    } catch (err) {
+      console.warn(err);
+      alert('Gagal memproses foto.');
+    } finally {
+      setIsCompressingAsatidz(false);
+    }
+  };
+
+  const handleUploadMuridPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsCompressingMurid(true);
+    try {
+      const compressed = await compressImageFile(file, 360, 360, 0.8);
+      setFormMurid(prev => ({ ...prev, foto: compressed }));
+      showToast('📸 Foto Santri siap disimpan ke Cloud!');
+    } catch (err) {
+      console.warn(err);
+      alert('Gagal memproses foto.');
+    } finally {
+      setIsCompressingMurid(false);
+    }
+  };
 
   // 1. Subscribe to Firestore Asatidz Real-time
   useEffect(() => {
@@ -1184,14 +1224,38 @@ export const BiodataView: React.FC<BiodataViewProps> = ({
                   />
                 </div>
                 <div>
-                  <label className="font-extrabold text-slate-700 block mb-1">Foto Profil (Pilih Preset / URL):</label>
+                  <label className="font-extrabold text-slate-700 block mb-1">Foto Profil Asatidz:</label>
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-12 h-12 rounded-xl overflow-hidden border-2 border-teal-600 shadow-xs shrink-0">
+                      <img src={formAsatidz.foto} alt="Preview" className="w-full h-full object-cover" />
+                    </div>
+                    <div className="flex-1">
+                      <input
+                        type="file"
+                        ref={asatidzFileRef}
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleUploadAsatidzPhoto}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => asatidzFileRef.current?.click()}
+                        disabled={isCompressingAsatidz}
+                        className="w-full py-1.5 px-2.5 bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-300 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+                      >
+                        <Camera className="w-3.5 h-3.5 text-teal-600" />
+                        <span>{isCompressingAsatidz ? 'Memproses...' : 'Upload dari Galeri / Kamera HP'}</span>
+                      </button>
+                    </div>
+                  </div>
                   <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] font-bold text-slate-400">Preset:</span>
                     {AVATAR_PRESETS_ASATIDZ.slice(0, 4).map((p, idx) => (
                       <button
                         type="button"
                         key={idx}
                         onClick={() => setFormAsatidz({ ...formAsatidz, foto: p })}
-                        className={`w-8 h-8 rounded-lg overflow-hidden border-2 transition-all ${
+                        className={`w-7 h-7 rounded-lg overflow-hidden border-2 transition-all ${
                           formAsatidz.foto === p ? 'border-teal-600 scale-105 ring-2 ring-teal-400' : 'border-slate-200 opacity-60'
                         }`}
                       >
@@ -1412,14 +1476,38 @@ export const BiodataView: React.FC<BiodataViewProps> = ({
               </div>
 
               <div>
-                <label className="font-extrabold text-slate-700 block mb-1">Foto Santri (Preset):</label>
+                <label className="font-extrabold text-slate-700 block mb-1">Foto Santri:</label>
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-12 h-12 rounded-xl overflow-hidden border-2 border-emerald-600 shadow-xs shrink-0">
+                    <img src={formMurid.foto} alt="Preview" className="w-full h-full object-cover" />
+                  </div>
+                  <div className="flex-1">
+                    <input
+                      type="file"
+                      ref={muridFileRef}
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleUploadMuridPhoto}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => muridFileRef.current?.click()}
+                      disabled={isCompressingMurid}
+                      className="w-full py-1.5 px-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      <Camera className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>{isCompressingMurid ? 'Memproses...' : 'Upload dari Galeri / Kamera HP'}</span>
+                    </button>
+                  </div>
+                </div>
                 <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] font-bold text-slate-400">Preset:</span>
                   {AVATAR_PRESETS_MURID.map((p, idx) => (
                     <button
                       type="button"
                       key={idx}
                       onClick={() => setFormMurid({ ...formMurid, foto: p })}
-                      className={`w-8 h-8 rounded-lg overflow-hidden border-2 transition-all ${
+                      className={`w-7 h-7 rounded-lg overflow-hidden border-2 transition-all ${
                         formMurid.foto === p ? 'border-emerald-600 scale-105 ring-2 ring-emerald-400' : 'border-slate-200 opacity-60'
                       }`}
                     >

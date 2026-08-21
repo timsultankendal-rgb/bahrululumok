@@ -93,6 +93,18 @@
         "canExportPdf": { "type": "boolean" }
       },
       "required": ["role", "menuAccess"]
+    },
+    "AppConfig": {
+      "title": "Konfigurasi & Profil Madrasah",
+      "description": "Konfigurasi aplikasi, branding madrasah, profil santri, profil guru, dan sambutan kepala",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "configKey": { "type": "string" },
+        "payload": { "type": "object" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "configKey"]
     }
   },
   "firestore": {
@@ -119,6 +131,10 @@
     "/role_permissions/{roleKey}": {
       "schema": "RolePermission",
       "description": "Konfigurasi hak akses menu berdasarkan role"
+    },
+    "/app_config/{configId}": {
+      "schema": "AppConfig",
+      "description": "Konfigurasi branding, sambutan kepala, dan profil aplikasi"
     }
   }
 }

@@ -34,7 +34,10 @@ import {
   getSavedAuthSession, 
   saveAuthSession, 
   canViewMenu, 
-  checkMenuAccessLevel 
+  checkMenuAccessLevel,
+  subscribeUserAccountsFromCloud,
+  subscribeRolePermissionsFromCloud,
+  syncUserAccountToCloud
 } from './services/authService';
 import { Lock, LogIn, ShieldAlert, ArrowLeft } from 'lucide-react';
 import { playTapSound } from './utils/audio';
@@ -189,8 +192,25 @@ export default function App() {
   });
 
   // Core Data State
-  const [student, setStudent] = useState<StudentProfile>(INITIAL_STUDENT);
-  const [teacher, setTeacher] = useState<TeacherProfile>(INITIAL_TEACHER);
+  const [student, setStudent] = useState<StudentProfile>(() => {
+    try {
+      const saved = localStorage.getItem('madrasah_student_profile_v2');
+      if (saved) return JSON.parse(saved);
+    } catch {
+      // fallback
+    }
+    return INITIAL_STUDENT;
+  });
+
+  const [teacher, setTeacher] = useState<TeacherProfile>(() => {
+    try {
+      const saved = localStorage.getItem('madrasah_teacher_profile_v2');
+      if (saved) return JSON.parse(saved);
+    } catch {
+      // fallback
+    }
+    return INITIAL_TEACHER;
+  });
   const [tugasList, setTugasList] = useState<TugasItem[]>(TUGAS_LIST);
   const [mutabaahList, setMutabaahList] = useState<MutabaahItem[]>(() => {
     try {
@@ -405,6 +425,112 @@ export default function App() {
       unsub();
     };
   }, []);
+
+  // Subscribe to Cloud Firestore for Student Profile (Real-time sync across devices)
+  useEffect(() => {
+    let isMounted = true;
+    const unsub = subscribeMenuRecords<StudentProfile>('student_profile', (records) => {
+      if (!isMounted) return;
+      if (records && records.length > 0 && records[0].payload) {
+        const payload = records[0].payload;
+        setStudent(payload);
+        localStorage.setItem('madrasah_student_profile_v2', JSON.stringify(payload));
+      } else {
+        saveMenuRecordToFirestore('student_profile', 'main', 'Profil Santri', INITIAL_STUDENT);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+      unsub();
+    };
+  }, []);
+
+  // Subscribe to Cloud Firestore for Teacher Profile (Real-time sync across devices)
+  useEffect(() => {
+    let isMounted = true;
+    const unsub = subscribeMenuRecords<TeacherProfile>('teacher_profile', (records) => {
+      if (!isMounted) return;
+      if (records && records.length > 0 && records[0].payload) {
+        const payload = records[0].payload;
+        setTeacher(payload);
+        localStorage.setItem('madrasah_teacher_profile_v2', JSON.stringify(payload));
+      } else {
+        saveMenuRecordToFirestore('teacher_profile', 'main', 'Profil Dewan Guru & Asatidz', INITIAL_TEACHER);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+      unsub();
+    };
+  }, []);
+
+  // Subscribe to Cloud Firestore for User Accounts (Real-time sync across devices)
+  useEffect(() => {
+    let isMounted = true;
+    const unsub = subscribeUserAccountsFromCloud((cloudUsers) => {
+      if (!isMounted) return;
+      const current = getSavedAuthSession();
+      if (current?.user) {
+        const match = cloudUsers.find((u) => u.id === current.user.id);
+        if (match && (match.avatarUrl !== current.user.avatarUrl || match.fullName !== current.user.fullName || match.role !== current.user.role)) {
+          const updatedSession = {
+            ...current,
+            user: match,
+            role: match.role,
+          };
+          saveAuthSession(updatedSession);
+          setAuthSession(updatedSession);
+        }
+      }
+    });
+
+    return () => {
+      isMounted = false;
+      unsub();
+    };
+  }, []);
+
+  // Subscribe to Cloud Firestore for Role Permissions (Real-time sync across devices)
+  useEffect(() => {
+    let isMounted = true;
+    const unsub = subscribeRolePermissionsFromCloud(() => {
+      if (!isMounted) return;
+      setActiveRole((r) => r);
+    });
+
+    return () => {
+      isMounted = false;
+      unsub();
+    };
+  }, []);
+
+  const handleUpdateProfilePhoto = async (newPhotoUrl: string) => {
+    if (activeRole === 'guru') {
+      const updatedTeacher = { ...teacher, photoUrl: newPhotoUrl };
+      setTeacher(updatedTeacher);
+      localStorage.setItem('madrasah_teacher_profile_v2', JSON.stringify(updatedTeacher));
+      await saveMenuRecordToFirestore('teacher_profile', 'main', 'Profil Dewan Guru & Asatidz', updatedTeacher);
+    } else {
+      const updatedStudent = { ...student, photoUrl: newPhotoUrl };
+      setStudent(updatedStudent);
+      localStorage.setItem('madrasah_student_profile_v2', JSON.stringify(updatedStudent));
+      await saveMenuRecordToFirestore('student_profile', 'main', 'Profil Santri', updatedStudent);
+    }
+
+    if (authSession?.user) {
+      const updatedUser = {
+        ...authSession.user,
+        avatarUrl: newPhotoUrl,
+      };
+      await syncUserAccountToCloud(updatedUser);
+      setAuthSession({
+        ...authSession,
+        user: updatedUser,
+      });
+    }
+  };
 
   const handleSaveBranding = async (newBranding: AppBrandingConfig) => {
     setBranding(newBranding);
@@ -793,6 +919,7 @@ export default function App() {
           activeRole={activeRole}
           onClose={() => setIsIdCardOpen(false)}
           branding={branding}
+          onUpdatePhoto={handleUpdateProfilePhoto}
         />
       )}
 

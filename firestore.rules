@@ -46,6 +46,12 @@ service cloud.firestore {
       allow create, update, delete: if isValidId(roleKey);
     }
 
+    // App configurations & profiles (branding, sambutan, student_profile, teacher_profile, beranda)
+    match /app_config/{configId} {
+      allow get, list: if true;
+      allow create, update, delete: if isValidId(configId);
+    }
+
     // Connection test document
     match /test/{docId} {
       allow read, write: if true;

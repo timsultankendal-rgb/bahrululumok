@@ -302,3 +302,101 @@ export function subscribeMuridFromFirestore(
   return subscribeCollection<BiodataMurid>('santri', callback, onError);
 }
 
+/**
+ * APP CONFIG & PROFILES CLOUD SYNC
+ * (Branding, Sambutan Kepala Madrasah, Profil Santri, Profil Guru, Beranda)
+ */
+export async function saveAppConfigToFirestore<T extends Record<string, any>>(
+  configKey: string,
+  payload: T
+): Promise<void> {
+  await createDocument('app_config', configKey, {
+    id: configKey,
+    configKey,
+    payload,
+    updatedAt: new Date().toISOString(),
+  });
+}
+
+export async function getAppConfigFromFirestore<T>(
+  configKey: string
+): Promise<T | null> {
+  const docData = await getDocument<{ id: string; configKey: string; payload: T }>('app_config', configKey);
+  return docData?.payload || null;
+}
+
+export function subscribeAppConfig<T>(
+  configKey: string,
+  callback: (payload: T | null) => void,
+  onError?: (err: Error) => void
+): Unsubscribe {
+  return subscribeDocument<{ id: string; configKey: string; payload: T }>(
+    'app_config',
+    configKey,
+    (docData) => {
+      if (docData && docData.payload) {
+        callback(docData.payload);
+      } else {
+        callback(null);
+      }
+    },
+    onError
+  );
+}
+
+/**
+ * UNIVERSAL CLIENT-SIDE IMAGE COMPRESSION HELPER
+ * Compresses uploaded photos from Gallery/Camera to crisp, lightweight Data URL (<35KB)
+ * for instant Firestore sync across all smartphones and browsers without quota/payload errors.
+ */
+export function compressImageFile(
+  file: File,
+  maxWidth = 360,
+  maxHeight = 360,
+  quality = 0.8
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = (err) => reject(err);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onerror = (err) => reject(err);
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          let { width, height } = img;
+
+          if (width > height) {
+            if (width > maxWidth) {
+              height = Math.round((height * maxWidth) / width);
+              width = maxWidth;
+            }
+          } else {
+            if (height > maxHeight) {
+              width = Math.round((width * maxHeight) / height);
+              height = maxHeight;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            resolve(event.target?.result as string);
+            return;
+          }
+
+          ctx.drawImage(img, 0, 0, width, height);
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+          resolve(compressedDataUrl);
+        } catch (e) {
+          resolve(event.target?.result as string);
+        }
+      };
+      img.src = event.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+

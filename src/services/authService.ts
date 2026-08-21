@@ -90,12 +90,58 @@ export async function syncUserAccountToCloud(user: UserAccount): Promise<void> {
   }
   saveLocalUserAccounts(updatedUsers);
 
+  // If current session is this user, update session as well
+  const currentSession = getSavedAuthSession();
+  if (currentSession && currentSession.user && currentSession.user.id === user.id) {
+    saveAuthSession({
+      ...currentSession,
+      user,
+      role: user.role,
+    });
+  }
+
   // Sync to Firestore
   try {
     await createDocument('user_accounts', user.id, user);
   } catch (err) {
     console.warn('Cloud sync error for user account:', err);
   }
+}
+
+export function subscribeUserAccountsFromCloud(
+  callback: (users: UserAccount[]) => void
+) {
+  return subscribeCollection<UserAccount>('user_accounts', (cloudUsers) => {
+    if (cloudUsers && cloudUsers.length > 0) {
+      // Merge with default accounts to guarantee defaults exist if not yet migrated
+      const mergedMap = new Map<string, UserAccount>();
+      DEFAULT_USER_ACCOUNTS.forEach((u) => mergedMap.set(u.id, u));
+      cloudUsers.forEach((u) => mergedMap.set(u.id, u));
+      const combined = Array.from(mergedMap.values());
+      saveLocalUserAccounts(combined);
+
+      // Check if current logged in user has updated info in cloud
+      const currentSession = getSavedAuthSession();
+      if (currentSession && currentSession.user) {
+        const matchingCloud = combined.find((u) => u.id === currentSession.user.id);
+        if (matchingCloud && JSON.stringify(matchingCloud) !== JSON.stringify(currentSession.user)) {
+          saveAuthSession({
+            ...currentSession,
+            user: matchingCloud,
+            role: matchingCloud.role,
+          });
+        }
+      }
+
+      callback(combined);
+    } else {
+      // If cloud is empty, seed defaults to cloud
+      DEFAULT_USER_ACCOUNTS.forEach((u) => {
+        createDocument('user_accounts', u.id, u).catch(console.warn);
+      });
+      callback(DEFAULT_USER_ACCOUNTS);
+    }
+  });
 }
 
 export async function deleteUserAccountFromCloud(userId: string): Promise<void> {
@@ -135,6 +181,27 @@ export function saveLocalRolePermissions(
   } catch (err) {
     console.warn('Failed to save local role permissions:', err);
   }
+}
+
+export function subscribeRolePermissionsFromCloud(
+  callback: (permissions: Record<string, RolePermissions>) => void
+) {
+  return subscribeCollection<{ id: string; role?: string; menuAccess?: any }>('role_permissions', (items) => {
+    if (items && items.length > 0) {
+      const current = getLocalRolePermissions();
+      items.forEach((item) => {
+        const roleKey = item.id as UserRole;
+        if (roleKey) {
+          current[roleKey] = {
+            ...current[roleKey],
+            ...item as unknown as RolePermissions,
+          };
+        }
+      });
+      saveLocalRolePermissions(current);
+      callback(current);
+    }
+  });
 }
 
 export async function syncRolePermissionsToCloud(
