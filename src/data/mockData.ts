@@ -49,12 +49,12 @@ export const INITIAL_TEACHER: TeacherProfile = {
 export const PRAYER_SCHEDULE: PrayerTime[] = [
   { name: 'Imsak', time: '04:18', arabicName: 'الإمساك' },
   { name: 'Subuh', time: '04:28', arabicName: 'الفجر' },
-  { name: 'Terbit', time: '05:45', arabicName: 'الشروق' },
-  { name: 'Dhuha', time: '06:15', arabicName: 'الضحى' },
-  { name: 'Dzuhur', time: '11:47', arabicName: 'الظهر' },
-  { name: 'Ashar', time: '15:08', arabicName: 'العصر', isNext: true },
-  { name: 'Maghrib', time: '17:46', arabicName: 'المغرب' },
-  { name: 'Isya', time: '18:56', arabicName: 'العشاء' },
+  { name: 'Terbit', time: '05:44', arabicName: 'الشروق' },
+  { name: 'Dhuha', time: '06:08', arabicName: 'الضحى' },
+  { name: 'Dzuhur', time: '11:46', arabicName: 'الظهر' },
+  { name: 'Ashar', time: '15:06', arabicName: 'العصر', isNext: true },
+  { name: 'Maghrib', time: '17:44', arabicName: 'المغرب' },
+  { name: 'Isya', time: '18:54', arabicName: 'العشاء' },
 ];
 
 export const JADWAL_PELAJARAN: JadwalItem[] = [

@@ -50,7 +50,7 @@ export const KuitansiTabunganModal: React.FC<KuitansiTabunganModalProps> = ({
   const handleShareWhatsApp = () => {
     playTapSound();
     const pesan = `*BUKTI TRANSAKSI TABUNGAN SANTRI*\n` +
-      `Madrasah & KOPAS Al-Ikhlas Unggulan Kendal\n\n` +
+      `MDT Ula NU 09 Bahrul Ulum Kendal\n\n` +
       `No. Kuitansi : ${transaksi.idKuitansi || transaksi.id}\n` +
       `Nama Santri  : ${santri.nama} (${santri.kelas})\n` +
       `No. Rekening : ${santri.noRekening || santri.noInduk}\n` +

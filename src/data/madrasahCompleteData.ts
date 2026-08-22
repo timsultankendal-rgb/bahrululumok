@@ -787,7 +787,7 @@ export const PROFILE_MADRASAH_DATA = {
   jumlahSantriAktif: '485 Santri (Putra: 240, Putri: 245)',
   jumlahAsatidz: '26 Ustadz & Ustadzah',
   kurikulum: 'Kurikulum Madrasah Diniyah Takmiliyah Ula & Wustho Aswaja An-Nahdliyyah',
-  alamat: 'Jl. Pesantren No. 09, Kendal, Jawa Tengah 51372',
+  alamat: 'Dukuh Ngrau, RT 02/RW 02, Desa Tunggulsari, Kecamatan Brangsong, Kabupaten Kendal, Jawa Tengah 51371',
   sejarahSingkat: `MDT Ula NU 09 Bahrul Ulum didirikan untuk membentengi aqidah generasi muda melalui pendidikan diniyah dan pembinaan akhlak karimah. Menggunakan sistem pembelajaran kitab kuning salafiyah, sorogan, bandongan, dan klasikal berjenjang Kelas 1 sampai Kelas 6 dengan sistem Caturwulan (Cawu).`
 };
 
@@ -1189,10 +1189,10 @@ export const PRESTASI_LIST: PrestasiItem[] = [
 // 18. ALAMAT LEMBAGA, CONTACT, GROUP WA, REKENING
 // =========================================================================
 export const KONTAK_REKENING_DATA = {
-  namaLembaga: 'Madrasah Diniyah Takmiliyah Al-Ikhlas Kendal',
-  alamatLengkap: 'Jl. Pesantren No. 09, Desa Magelung Kulon RT 03/RW 02, Kec. Kaliwungu Selatan, Kab. Kendal, Jawa Tengah 51372',
-  patokan: '500 meter sebelah timur Makam Pahlawan / 10 menit dari Alun-Alun Kaliwungu Kendal',
-  googleMapsUrl: 'https://maps.google.com/?q=Kaliwungu+Kendal+Jawa+Tengah',
+  namaLembaga: 'MDT Ula NU 09 Bahrul Ulum Kendal',
+  alamatLengkap: 'Dukuh Ngrau, RT 02/RW 02, Desa Tunggulsari, Kecamatan Brangsong, Kabupaten Kendal, Jawa Tengah 51371',
+  patokan: 'Dukuh Ngrau RT 02/RW 02, Desa Tunggulsari, Kec. Brangsong, Kab. Kendal',
+  googleMapsUrl: 'https://maps.google.com/?q=Tunggulsari+Brangsong+Kendal+Jawa+Tengah',
   kontak: [
     { label: 'Kantor Tata Usaha Madrasah', noTelp: '(0294) 381234', icon: 'Phone' },
     { label: 'Hotline WhatsApp Resmi Madrasah', noTelp: '0812-3456-7890 (Ust. Zainuri)', icon: 'MessageCircle' },
@@ -1208,21 +1208,21 @@ export const KONTAK_REKENING_DATA = {
     {
       bank: 'Bank Syariah Indonesia (BSI)',
       nomorRekening: '719.8822.334',
-      atasNama: 'YAYASAN AL-IKHLAS KENDAL / MADRASAH',
+      atasNama: 'MDT ULA NU 09 BAHRUL ULUM KENDAL',
       kodeBank: '451',
       keterangan: 'Khusus Pembayaran Syahriyah, Infaq Pembangunan & Donasi'
     },
     {
       bank: 'Bank Rakyat Indonesia (BRI)',
       nomorRekening: '0034-01-002345-50-8',
-      atasNama: 'MADRASAH DINIYAH AL IKHLAS',
+      atasNama: 'MDT ULA NU 09 BAHRUL ULUM',
       kodeBank: '002',
       keterangan: 'Operasional Madrasah & Koperasi Santri (KOPAS)'
     },
     {
       bank: 'Bank Jateng Syariah',
       nomorRekening: '502.300.8910',
-      atasNama: 'YASMIN AL-IKHLAS KENDAL',
+      atasNama: 'BAHRUL ULUM TUNGGULSARI BRANGSONG',
       kodeBank: '113',
       keterangan: 'Program Beasiswa Santri Yatim & Tahfidz'
     }

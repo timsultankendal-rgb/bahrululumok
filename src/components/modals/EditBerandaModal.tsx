@@ -34,7 +34,7 @@ export const DEFAULT_BERANDA_CONFIG: BerandaConfig = {
   bannerSubtitle: 'Sistem Informasi KBM & Kesiswaan Terpadu',
   bannerBadge: 'Akreditasi A',
   hijriDate: '14 SAFAR 1448 H',
-  locationLabel: 'Kendal & Sekitarnya',
+  locationLabel: 'Tunggulsari, Brangsong, Kendal',
   announcements: [
     {
       id: 'ann-1',
@@ -58,12 +58,14 @@ export const DEFAULT_BERANDA_CONFIG: BerandaConfig = {
     }
   ],
   prayerSchedule: [
-    { name: 'Subuh', time: '04:32', arabicName: 'الفجر' },
-    { name: 'Terbit', time: '05:48', arabicName: 'الشروق' },
-    { name: 'Dzuhur', time: '11:49', arabicName: 'الظهر' },
-    { name: 'Ashar', time: '15:08', arabicName: 'العصر' },
-    { name: 'Maghrib', time: '17:45', arabicName: 'المغرب' },
-    { name: 'Isya', time: '18:56', arabicName: 'العشاء' }
+    { name: 'Imsak', time: '04:18', arabicName: 'الإمساك' },
+    { name: 'Subuh', time: '04:28', arabicName: 'الفجر' },
+    { name: 'Terbit', time: '05:44', arabicName: 'الشروق' },
+    { name: 'Dhuha', time: '06:08', arabicName: 'الضحى' },
+    { name: 'Dzuhur', time: '11:46', arabicName: 'الظهر' },
+    { name: 'Ashar', time: '15:06', arabicName: 'العصر' },
+    { name: 'Maghrib', time: '17:44', arabicName: 'المغرب' },
+    { name: 'Isya', time: '18:54', arabicName: 'العشاء' }
   ],
   mutabaahItems: [
     { id: 'm-1', kegiatan: 'Sholat Shubuh Berjamaah di Masjid', kategori: 'Sholat Wajib', isDone: true, waktu: '04:35 WIB' },
@@ -281,7 +283,7 @@ export const EditBerandaModal: React.FC<EditBerandaModalProps> = ({
                   required
                   value={form.bannerTitle}
                   onChange={(e) => setForm({ ...form, bannerTitle: e.target.value })}
-                  placeholder="Contoh: MTs Al-Ikhlas Kendal"
+                  placeholder="Contoh: MDT Ula NU 09 Bahrul Ulum Kendal"
                   className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-bold focus:outline-emerald-600"
                 />
               </div>

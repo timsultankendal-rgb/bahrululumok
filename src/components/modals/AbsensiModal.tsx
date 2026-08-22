@@ -66,7 +66,7 @@ export const AbsensiModal: React.FC<AbsensiModalProps> = ({
         tanggal: 'Hari Ini, 18 Agustus 2026',
         jamMasuk: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB',
         status: 'Hadir',
-        lokasi: `Gerbang MTs Al-Ikhlas Kendal (Radius ${gpsDistance}m Valid)`,
+        lokasi: `Gerbang MDT Ula NU 09 Bahrul Ulum (Radius ${gpsDistance}m Valid)`,
       };
 
       onSuccessPresensi(newRec);
@@ -143,7 +143,7 @@ export const AbsensiModal: React.FC<AbsensiModalProps> = ({
                 </span>
               </div>
               <p className="text-[10px] text-slate-500 font-medium">
-                Titik GPS: -6.918239, 110.204581 (MTs Al-Ikhlas Kendal)
+                Titik GPS: -6.938210, 110.231140 (Dukuh Ngrau, Tunggulsari, Brangsong)
               </p>
             </div>
 

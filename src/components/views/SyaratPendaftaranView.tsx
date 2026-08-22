@@ -169,7 +169,7 @@ export const SyaratPendaftaranView: React.FC<SyaratPendaftaranViewProps> = ({
                 Pendaftaran Online Berhasil Dikirim!
               </h3>
               <p className="text-xs text-slate-500 max-w-md mx-auto">
-                Terima kasih. Panitia PSB Madrasah Diniyah Al-Ikhlas akan segera menghubungi nomor WhatsApp orang tua dalam kurun 1x24 jam untuk verifikasi berkas.
+                Terima kasih. Panitia PSB MDT Ula NU 09 Bahrul Ulum akan segera menghubungi nomor WhatsApp orang tua dalam kurun 1x24 jam untuk verifikasi berkas.
               </p>
               <button
                 onClick={() => setFormSubmitted(false)}

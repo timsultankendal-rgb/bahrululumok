@@ -572,7 +572,7 @@ export const KeuanganTab: React.FC<KeuanganTabProps> = ({
                   </button>
                 </div>
                 <div className="mt-2 text-[10px] text-slate-600">
-                  Nama Rekening: <span className="text-slate-900 font-bold">MTs Al-Ikhlas - {student.name}</span>
+                  Nama Rekening: <span className="text-slate-900 font-bold">MDT Ula NU 09 Bahrul Ulum - {student.name}</span>
                 </div>
               </div>
             )}
@@ -606,7 +606,7 @@ export const KeuanganTab: React.FC<KeuanganTabProps> = ({
                 <ShieldCheck className="w-6 h-6" />
               </div>
               <h3 className="font-extrabold text-sm text-slate-900">BUKTI PEMBAYARAN DIGITAL</h3>
-              <p className="text-[10px] text-slate-500 font-medium">Kemenag RI • MTs Al-Ikhlas Unggulan Kendal</p>
+              <p className="text-[10px] text-slate-500 font-medium">Kemenag RI • MDT Ula NU 09 Bahrul Ulum Kendal</p>
             </div>
 
             <div className="py-4 space-y-2 text-xs border-b border-slate-100">

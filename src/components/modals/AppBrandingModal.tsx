@@ -207,7 +207,7 @@ export const AppBrandingModal: React.FC<AppBrandingModalProps> = ({
                 </span>
                 <span className="text-[10px] text-emerald-200 font-medium">•</span>
                 <span className="text-[11px] text-amber-200 font-bold truncate">
-                  {form.institutionName || 'MTs Al-Ikhlas Kendal'}
+                  {form.institutionName || 'MDT Ula NU 09 Bahrul Ulum Kendal'}
                 </span>
               </div>
               <p className="text-[10px] text-emerald-100 font-medium truncate mt-0.5">
@@ -280,7 +280,7 @@ export const AppBrandingModal: React.FC<AppBrandingModalProps> = ({
                 <input
                   type="text"
                   required
-                  placeholder="Contoh: MTs Al-Ikhlas Kendal"
+                  placeholder="Contoh: MDT Ula NU 09 Bahrul Ulum Kendal"
                   value={form.institutionName}
                   onChange={(e) => setForm({ ...form, institutionName: e.target.value })}
                   className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl font-bold text-slate-800 focus:outline-emerald-600"

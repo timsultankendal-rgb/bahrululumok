@@ -205,7 +205,7 @@ export const ProfilTab: React.FC<ProfilTabProps> = ({
                   KETENTUAN KARTU SANTRI DIGITAL
                 </div>
                 <ul className="space-y-1 text-[10px] text-slate-300 list-disc pl-4 leading-relaxed font-medium">
-                  <li>Kartu ini adalah identitas resmi civitas akademika MTs Al-Ikhlas Kendal.</li>
+                  <li>Kartu ini adalah identitas resmi civitas akademika MDT Ula NU 09 Bahrul Ulum Kendal.</li>
                   <li>Dapat digunakan untuk presensi GPS, peminjaman e-library, dan transaksi kantin digital.</li>
                   <li>Wajib menjaga marwah dan akhlakul karimah almamater madrasah.</li>
                 </ul>

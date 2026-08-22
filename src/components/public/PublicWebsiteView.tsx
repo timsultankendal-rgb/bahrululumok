@@ -1029,7 +1029,7 @@ export const PublicWebsiteView: React.FC<PublicWebsiteViewProps> = ({
                   <div>
                     <strong className="block text-white">Alamat Kampus:</strong>
                     <p className="text-teal-200 leading-relaxed">
-                      Jl. Pesantren No. 09 RT 03/RW 02, Magelung, Kaliwungu Selatan, Kendal, Jawa Tengah
+                      Dukuh Ngrau, RT 02/RW 02, Desa Tunggulsari, Kecamatan Brangsong, Kabupaten Kendal, Jawa Tengah
                     </p>
                   </div>
                 </div>

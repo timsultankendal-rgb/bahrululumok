@@ -87,8 +87,8 @@ export const CetakRaportModal: React.FC<CetakRaportModalProps> = ({ raport, onCl
     window.print();
   };
 
-  const namaMadrasah = profile.namaLembaga || branding.institutionName || 'Madrasah Diniyah Takmiliyah Al-Ikhlas';
-  const yayasanNaungan = profile.naungan || 'Yayasan Pendidikan Islam Al-Ikhlas Kendal';
+  const namaMadrasah = profile.namaLembaga || branding.institutionName || 'MDT Ula NU 09 Bahrul Ulum Kendal';
+  const yayasanNaungan = profile.naungan || 'Yayasan & LP Ma\'arif NU Cabang Kendal';
   const alamatMadrasah = profile.alamat || kontakData.alamatLengkap;
   const kepalaMadrasah = profile.kepalaMadrasah || raport.namaKepalaMadrasah || 'KH. Abdullah Syukri, Lc., M.A.';
   const primaryPhone = kontakData.kontak?.[0]?.noTelp || '(0294) 381234';

@@ -520,7 +520,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5 flex-wrap">
               <h2 className="text-base sm:text-lg font-black text-white leading-tight truncate">
-                {berandaConfig.bannerTitle || branding.institutionName || 'MTs Al-Ikhlas Kendal'}
+                {berandaConfig.bannerTitle || branding.institutionName || 'MDT Ula NU 09 Bahrul Ulum Kendal'}
               </h2>
               {berandaConfig.bannerBadge && (
                 <span className="text-[9px] sm:text-[10px] bg-amber-400 text-emerald-950 font-black px-1.5 py-0.2 rounded uppercase shadow-2xs shrink-0">

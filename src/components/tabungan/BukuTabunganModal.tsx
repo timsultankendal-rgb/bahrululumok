@@ -65,7 +65,7 @@ export const BukuTabunganModal: React.FC<BukuTabunganModalProps> = ({
     ).join('\n');
 
     const pesan = `*LAPORAN BUKU TABUNGAN SANTRI*\n` +
-      `Madrasah & KOPAS Al-Ikhlas Unggulan Kendal\n\n` +
+      `MDT Ula NU 09 Bahrul Ulum Kendal\n\n` +
       `👤 *Nama Santri:* ${santri.nama}\n` +
       `💳 *No. Rekening:* ${santri.noRekening || santri.noInduk}\n` +
       `🏫 *Kelas / Program:* ${santri.kelas} • ${santri.programTabungan || 'Reguler'}\n` +
@@ -320,7 +320,7 @@ export const BukuTabunganModal: React.FC<BukuTabunganModalProps> = ({
         <div className="p-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-[11px] text-slate-500 flex-shrink-0">
           <div className="flex items-center gap-1 text-emerald-700">
             <ShieldCheck className="w-3.5 h-3.5" />
-            <span>Terhubung Cloud Firestore MTs Al-Ikhlas</span>
+            <span>Terhubung Cloud Firestore MDT Bahrul Ulum</span>
           </div>
           <button
             onClick={onClose}
