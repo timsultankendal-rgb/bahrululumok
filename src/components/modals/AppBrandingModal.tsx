@@ -29,20 +29,24 @@ export interface AppBrandingConfig {
 }
 
 export const DEFAULT_BRANDING: AppBrandingConfig = {
-  appName: 'MadrasahKu',
+  appName: 'Bahrululumku',
   appBadge: 'DIGITAL',
-  portalBadge: 'Portal Madrasah Kemenag RI',
-  institutionName: 'MTs Al-Ikhlas Kendal',
+  portalBadge: 'Portal Madrasah Diniyah Takmiliyah',
+  institutionName: 'MDT Ula NU 09 Bahrul Ulum Kendal',
   kemenagText: 'Kemenag RI',
   appSubtitle: 'Sistem Informasi Akademik & Kesiswaan Terpadu',
-  logoUrl: 'https://images.unsplash.com/photo-1542810634-71277d95dcbb?w=150&auto=format&fit=crop&q=80',
+  logoUrl: '/icon.svg',
   themeColor: 'emerald'
 };
 
 const LOGO_PRESETS = [
   {
-    name: 'Logo Default (Masjid Hijau Modern)',
-    url: 'https://images.unsplash.com/photo-1542810634-71277d95dcbb?w=150&auto=format&fit=crop&q=80'
+    name: 'Logo Resmi MDT ULA NU 09 Bahrul Ulum',
+    url: '/icon.svg'
+  },
+  {
+    name: 'Logo PNG Bahrululumku',
+    url: '/bahrululum-logo.png'
   },
   {
     name: 'Emblem Kaligrafi & Al-Qur\'an Emas',
@@ -55,10 +59,6 @@ const LOGO_PRESETS = [
   {
     name: 'Lambang Kitab Kuning Salafiyah',
     url: 'https://images.unsplash.com/photo-1532012164546-f432f2e3edd4?w=150&auto=format&fit=crop&q=80'
-  },
-  {
-    name: 'Madrasah Hebat & Bermartabat',
-    url: 'https://images.unsplash.com/photo-1584286595398-a59f21d313f5?w=150&auto=format&fit=crop&q=80'
   },
   {
     name: 'Bintang & Bulan Sabit Zamrud',

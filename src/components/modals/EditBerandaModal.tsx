@@ -30,7 +30,7 @@ export interface BerandaConfig {
 }
 
 export const DEFAULT_BERANDA_CONFIG: BerandaConfig = {
-  bannerTitle: 'MTs Al-Ikhlas Kendal',
+  bannerTitle: 'MDT Ula NU 09 Bahrul Ulum Kendal',
   bannerSubtitle: 'Sistem Informasi KBM & Kesiswaan Terpadu',
   bannerBadge: 'Akreditasi A',
   hijriDate: '14 SAFAR 1448 H',

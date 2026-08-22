@@ -1,6 +1,6 @@
 {
-  "appId": "com.madrasahku.mobile",
-  "appName": "MadrasahKu Digital",
+  "appId": "com.bahrululumku.app",
+  "appName": "Bahrululumku",
   "webDir": "dist",
   "bundledWebRuntime": false,
   "server": {
@@ -8,6 +8,6 @@
   },
   "android": {
     "allowMixedContent": true,
-    "backgroundColor": "#064e3b"
+    "backgroundColor": "#005a2b"
   }
 }

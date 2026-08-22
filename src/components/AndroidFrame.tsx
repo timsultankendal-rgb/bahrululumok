@@ -301,7 +301,7 @@ export const AndroidFrame: React.FC<AndroidFrameProps> = ({
       {/* Bottom helper info */}
       {deviceViewMode !== 'full' && (
         <footer className="mt-2 text-center text-[11px] text-slate-500 sm:block hidden font-medium">
-          <span>Portal Digital Madrasah Terpadu © 2026 Kementerian Agama RI & Yayasan Al-Ikhlas</span>
+          <span>Portal Digital Bahrululumku © 2026 MDT Ula NU 09 Bahrul Ulum Kendal</span>
         </footer>
       )}
     </div>

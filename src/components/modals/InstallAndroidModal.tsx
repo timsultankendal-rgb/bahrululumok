@@ -32,7 +32,7 @@ interface BeforeInstallPromptEvent extends Event {
 export const InstallAndroidModal: React.FC<InstallAndroidModalProps> = ({
   isOpen,
   onClose,
-  appName = 'MadrasahKu Digital'
+  appName = 'Bahrululumku'
 }) => {
   const [activeTab, setActiveTab] = useState<'pwa' | 'apk' | 'share'>('pwa');
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);

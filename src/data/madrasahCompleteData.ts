@@ -776,19 +776,19 @@ export const MAPEL_KTSP_LIST: MapelPerCawu[] = [
 // 7. PROFILE MADRASAH
 // =========================================================================
 export const PROFILE_MADRASAH_DATA = {
-  namaLembaga: 'Madrasah Diniyah Takmiliyah Awaliyah & Wustho Al-Ikhlas',
-  naungan: 'Yayasan Pendidikan Islam Al-Ikhlas Kendal • Terdaftar di Kemenag RI',
-  nomorStatistikMadrasah: 'NSM : 311.33.24.05.089',
+  namaLembaga: 'MDT Ula NU 09 Bahrul Ulum Kendal',
+  naungan: 'Yayasan & LP Ma\'arif NU Cabang Kendal • Terdaftar Kemenag RI',
+  nomorStatistikMadrasah: 'NSM : 311.33.24.09.009',
   npsn: 'NPSN : 69987654',
   akreditasi: 'TERAKREDITASI "A" (Unggul) - BAN-PDM Kemenag',
-  tahunBerdiri: '1418 H / 1997 M (29 Tahun Mengabdi)',
-  pendiri: 'Al-Maghfurlah KH. Ahmad Dahlan & Masyayikh Kaliwungu',
+  tahunBerdiri: '1418 H / 1997 M',
+  pendiri: 'Para Masyayikh & Tokoh NU Kendal',
   kepalaMadrasah: 'KH. Abdullah Syukri, Lc., M.A.',
   jumlahSantriAktif: '485 Santri (Putra: 240, Putri: 245)',
   jumlahAsatidz: '26 Ustadz & Ustadzah',
-  kurikulum: 'Perpaduan Kurikulum Salafiyah Kitab Kuning (Kemenag) & Karakter Aswaja An-Nahdliyyah',
-  alamat: 'Jl. Pesantren No. 09, Desa Magelung Kulon RT 03/RW 02, Kec. Kaliwungu Selatan, Kab. Kendal, Jawa Tengah 51372',
-  sejarahSingkat: `Madrasah Diniyah Al-Ikhlas didirikan pada tahun 1997 atas restu para ulama sepuh Kendal untuk membentengi aqidah generasi muda melalui pendidikan diniyah petang hari. Menggunakan sistem pembelajaran sorogan, bandongan, dan klasikal berjenjang Kelas 1 sampai Kelas 6 dengan sistem Caturwulan (Cawu). Hingga saat ini telah melahirkan ribuan alumni yang berkiprah sebagai kyai, ustadz, akademisi, dan pemimpin masyarakat.`
+  kurikulum: 'Kurikulum Madrasah Diniyah Takmiliyah Ula & Wustho Aswaja An-Nahdliyyah',
+  alamat: 'Jl. Pesantren No. 09, Kendal, Jawa Tengah 51372',
+  sejarahSingkat: `MDT Ula NU 09 Bahrul Ulum didirikan untuk membentengi aqidah generasi muda melalui pendidikan diniyah dan pembinaan akhlak karimah. Menggunakan sistem pembelajaran kitab kuning salafiyah, sorogan, bandongan, dan klasikal berjenjang Kelas 1 sampai Kelas 6 dengan sistem Caturwulan (Cawu).`
 };
 
 // =========================================================================

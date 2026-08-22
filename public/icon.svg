@@ -1,54 +1,106 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <defs>
-    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#065f46" />
-      <stop offset="50%" stop-color="#047857" />
-      <stop offset="100%" stop-color="#064e3b" />
-    </linearGradient>
-    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#fde68a" />
-      <stop offset="50%" stop-color="#fbbf24" />
-      <stop offset="100%" stop-color="#d97706" />
-    </linearGradient>
-    <linearGradient id="domeGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#ffffff" />
-      <stop offset="100%" stop-color="#e2e8f0" />
-    </linearGradient>
+    <!-- Background Gradient for richness -->
+    <radialGradient id="greenBg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#006c35" />
+      <stop offset="70%" stop-color="#005a2b" />
+      <stop offset="100%" stop-color="#004d24" />
+    </radialGradient>
+
+    <!-- Five-pointed star template -->
+    <g id="star">
+      <polygon points="0,-14 4.3,-4.3 14.7,-4.3 6.3,1.8 9.5,12 0,5.8 -9.5,12 -6.3,1.8 -14.7,-4.3 -4.3,-4.3" fill="#ffffff" />
+    </g>
+    <g id="star-lg">
+      <polygon points="0,-22 6.8,-6.8 23.1,-6.8 9.9,2.8 14.9,18.8 0,9.1 -14.9,18.8 -9.9,2.8 -23.1,-6.8 -6.8,-6.8" fill="#ffffff" />
+    </g>
+
+    <!-- Path for curved lower outer text -->
+    <!-- Centered at (256, 256), radius ~215 -->
+    <path id="bottomTextPath" d="M 70 310 A 215 215 0 0 0 442 310" />
   </defs>
 
-  <!-- Background Rounded Rect -->
-  <rect width="512" height="512" rx="115" fill="url(#bgGrad)" />
+  <!-- Outer background circle -->
+  <circle cx="256" cy="256" r="250" fill="#ffffff" />
   
-  <!-- Outer Gold Decorative Border -->
-  <rect x="24" y="24" width="464" height="464" rx="95" fill="none" stroke="url(#goldGrad)" stroke-width="8" opacity="0.4" />
-  
-  <!-- Central Mosque Dome Silhouette -->
-  <path d="M 256 110 C 275 160 350 200 350 270 L 162 270 C 162 200 237 160 256 110 Z" fill="url(#goldGrad)" />
-  
-  <!-- Crescent & Star on Dome -->
-  <circle cx="256" cy="92" r="14" fill="#fbbf24" />
-  <circle cx="261" cy="90" r="11" fill="#065f46" />
-  
-  <!-- Open Quran Book Structure -->
-  <g transform="translate(136, 260)">
-    <!-- Left Page -->
-    <path d="M 120 40 C 70 30 20 45 0 55 L 0 135 C 20 125 70 110 120 120 Z" fill="#ffffff" />
-    <!-- Right Page -->
-    <path d="M 120 40 C 170 30 220 45 240 55 L 240 135 C 220 125 170 110 120 120 Z" fill="#f8fafc" />
-    <!-- Center Spine & Ribbon -->
-    <path d="M 115 35 L 125 35 L 125 145 L 115 145 Z" fill="#d97706" />
-    <!-- Book Base Rehal Stand -->
-    <path d="M 40 145 L 80 175 L 160 175 L 200 145 L 180 140 L 120 155 L 60 140 Z" fill="url(#goldGrad)" />
-    <!-- Calligraphy Lines Simulation -->
-    <line x1="25" y1="75" x2="95" y2="68" stroke="#047857" stroke-width="3" stroke-linecap="round" />
-    <line x1="25" y1="92" x2="95" y2="85" stroke="#047857" stroke-width="3" stroke-linecap="round" />
-    <line x1="25" y1="109" x2="75" y2="102" stroke="#047857" stroke-width="3" stroke-linecap="round" />
+  <!-- Outer Green Decorative Ring with Top Arc & Terminal Nodes -->
+  <circle cx="256" cy="256" r="236" fill="none" stroke="#005a2b" stroke-width="16" />
+  <circle cx="44" cy="256" r="14" fill="#005a2b" />
+  <circle cx="468" cy="256" r="14" fill="#005a2b" />
+
+  <!-- Inner Solid Green Circle -->
+  <circle cx="256" cy="256" r="195" fill="url(#greenBg)" />
+
+  <!-- 9 White Stars in Upper Arc -->
+  <!-- Top Center Big Star -->
+  <use href="#star-lg" x="256" y="112" />
+  <!-- 4 Stars Left -->
+  <use href="#star" x="214" y="126" />
+  <use href="#star" x="176" y="148" />
+  <use href="#star" x="146" y="180" />
+  <use href="#star" x="126" y="222" />
+  <!-- 4 Stars Right -->
+  <use href="#star" x="298" y="126" />
+  <use href="#star" x="336" y="148" />
+  <use href="#star" x="366" y="180" />
+  <use href="#star" x="386" y="222" />
+
+  <!-- Open Quran Book (Kitab Terbuka) in Dynamic Stylized Lines -->
+  <g stroke="#ffffff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <!-- Left Page Outer & Upper Fold -->
+    <path d="M 250 216 L 195 185 L 148 245 L 210 262 L 246 295 L 200 290 L 140 270 L 160 218" />
+    <path d="M 195 185 L 250 205 L 246 270 L 160 248 Z" fill="#005a2b" />
     
-    <line x1="145" y1="68" x2="215" y2="75" stroke="#047857" stroke-width="3" stroke-linecap="round" />
-    <line x1="145" y1="85" x2="215" y2="92" stroke="#047857" stroke-width="3" stroke-linecap="round" />
-    <line x1="165" y1="102" x2="215" y2="109" stroke="#047857" stroke-width="3" stroke-linecap="round" />
+    <!-- Right Page Outer & Upper Fold -->
+    <path d="M 262 216 L 317 185 L 364 245 L 302 262 L 266 295 L 312 290 L 372 270 L 352 218" />
+    <path d="M 317 185 L 262 205 L 266 270 L 352 248 Z" fill="#005a2b" />
+
+    <!-- Solid White Book Pages Folds -->
+    <polygon points="195,185 248,206 172,246 148,245" fill="#ffffff" stroke="none" />
+    <polygon points="317,185 264,206 340,246 364,245" fill="#ffffff" stroke="none" />
+    
+    <!-- Lower Leaf Folds -->
+    <polygon points="175,248 248,272 216,285 146,268" fill="#ffffff" stroke="none" />
+    <polygon points="337,248 264,272 296,285 366,268" fill="#ffffff" stroke="none" />
+    <polygon points="216,286 248,295 180,296 142,274" fill="#ffffff" stroke="none" />
+    <polygon points="296,286 264,295 332,296 370,274" fill="#ffffff" stroke="none" />
   </g>
 
-  <!-- Typography: MADRASAHKU -->
-  <text x="256" y="465" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-size="34" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="4">MADRASAHKU</text>
+  <!-- Central Quill Feather Pen (Pena Bulu) -->
+  <g transform="translate(256, 210) rotate(14)">
+    <!-- Feather Body -->
+    <path d="M 0 50 C -4 30 -22 10 -22 -15 C -22 -45 0 -85 0 -85 C 0 -85 22 -45 22 -15 C 22 10 4 30 0 50 Z" fill="#ffffff" />
+    <!-- Feather Center Quill Shaft -->
+    <path d="M 0 -85 L 0 55" stroke="#005a2b" stroke-width="3.5" stroke-linecap="round" />
+    <!-- Feather Vane Cuts -->
+    <path d="M 0 -45 L -16 -35 M 0 -25 L -18 -15 M 0 -5 L -16 5 M 0 15 L -12 25" stroke="#005a2b" stroke-width="2.5" stroke-linecap="round" />
+    <path d="M 0 -40 L 16 -30 M 0 -20 L 18 -10 M 0 0 L 16 10 M 0 20 L 12 30" stroke="#005a2b" stroke-width="2.5" stroke-linecap="round" />
+  </g>
+
+  <!-- Lower Curved Horizon Separator Line -->
+  <path d="M 120 348 Q 256 312 392 348" fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round" />
+
+  <!-- Lower Information Section: Applikasi MULTI INFORMASI KENDAL -->
+  <!-- Wifi Signal Arcs above "pp" -->
+  <g stroke="#ffffff" stroke-width="3" fill="none" stroke-linecap="round">
+    <circle cx="256" cy="336" r="2.5" fill="#ffffff" stroke="none" />
+    <path d="M 250 330 A 7 7 0 0 1 262 330" />
+    <path d="M 245 324 A 13 13 0 0 1 267 324" />
+  </g>
+
+  <!-- Applikasi -->
+  <text x="256" y="374" font-family="'Plus Jakarta Sans', Arial, sans-serif" font-size="34" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="0.5">Applikasi</text>
+  
+  <!-- MULTI INFORMASI -->
+  <text x="256" y="392" font-family="'Plus Jakarta Sans', Arial, sans-serif" font-size="13" font-weight="800" fill="#ffffff" text-anchor="middle" letter-spacing="2.5">MULTI INFORMASI</text>
+  
+  <!-- KENDAL -->
+  <text x="256" y="416" font-family="'Plus Jakarta Sans', Arial, sans-serif" font-size="18" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="6">KENDAL</text>
+
+  <!-- Curved Outer Lower Text: MDT ULA NU 09 BAHRUL ULUM -->
+  <text fill="#005a2b" font-family="'Plus Jakarta Sans', Arial, sans-serif" font-size="29.5" font-weight="900" letter-spacing="3.5">
+    <textPath href="#bottomTextPath" startOffset="50%" text-anchor="middle">
+      MDT ULA NU 09 BAHRUL ULUM
+    </textPath>
+  </text>
 </svg>

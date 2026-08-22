@@ -219,7 +219,7 @@ export const AndroidInstallModal: React.FC<AndroidInstallModalProps> = ({
                 <div className="flex items-start gap-2.5">
                   <span className="w-5 h-5 rounded-full bg-emerald-600 text-white font-black text-[11px] flex items-center justify-center shrink-0 mt-0.5">4</span>
                   <p className="text-slate-700">
-                    Ikon aplikasi <strong>MadrasahKu</strong> akan langsung muncul di home screen HP Android Anda.
+                    Ikon aplikasi <strong>Bahrululumku</strong> akan langsung muncul di home screen HP Android Anda.
                   </p>
                 </div>
               </div>

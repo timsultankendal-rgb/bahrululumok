@@ -19,7 +19,7 @@ export const INITIAL_STUDENT: StudentProfile = {
   nis: '2324.09.042',
   name: 'Muhammad Rayhan Pratama',
   arabicName: 'مُحَمَّد رَيْحَان بَرَاتَامَا',
-  madrasahName: 'MTs Al-Ikhlas Unggulan Kendal',
+  madrasahName: 'MDT Ula NU 09 Bahrul Ulum Kendal',
   level: 'Kelas IX-A (Tahfidz & Sains)',
   academicYear: '2025/2026 Ganjil',
   photoUrl: 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=250&auto=format&fit=crop&q=80',
@@ -42,7 +42,7 @@ export const INITIAL_TEACHER: TeacherProfile = {
   subject: 'Fiqih & Ushul Fiqih',
   classTeacherOf: 'Wali Kelas IX-A',
   photoUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=250&auto=format&fit=crop&q=80',
-  madrasahName: 'MTs Al-Ikhlas Unggulan Kendal',
+  madrasahName: 'MDT Ula NU 09 Bahrul Ulum Kendal',
   phone: '0813-9876-5432'
 };
 
